@@ -1,0 +1,39 @@
+<div id="orderaAction{{ order.order_id }}">
+    <p class=" has-text-weight-bold pt-1 pb-1 has-text-right">共{{ order.total_count }}件商品，总金额{{ order.price }}元（含运费）</p>
+    <div class=" buttons is-justify-content-end">
+    {% if order.status == 1 %}
+        <a class="button is-primary is-small" href="{% url 'order:pay' order.order_id %}">立即支付</a>
+    {% elif order.status == 3 %}
+        <button class="button is-primary is-small" @click="confirmProduct">确认收货</button>
+    {% elif order.status == 4 and not order.is_commented %}
+        <a class=" button is-primary is-small" href="{% url 'order:comment' order.order_id %}">立即评价</a>
+    {% endif %}
+    <a href="{% url 'user:order_detail' order.order_id %}" class="button is-small">订单详情</a>
+    </div>
+</div>
+
+<script>
+    var confirmAction = new Vue({
+        el: '#orderaAction{{ order.order_id }}',
+        delimiters: ['{$', '$}'],
+        methods: {
+            confirmProduct(){
+                request({
+                    url:'{% url "order:confirm" %}',
+                    method: 'post',
+                    data: {
+                        order_id: {{ order.order_id }}
+                    }
+                }).then(res => {
+                    if (res.data.status == 200) {
+                        bayke.toastMessage('is-success', res.data.msg)
+                        setTimeout(function(){location.reload()}, 2000)
+                    }
+                    else {
+                        bayke.toastMessage('is-danger', res.data.errmsg)
+                    }
+                })
+            }
+        }
+    })
+</script>

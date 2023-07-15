@@ -1,0 +1,57 @@
+{% extends 'base_templates/base.html' %}
+
+{% block title %}家电之选-登录{% endblock title %}
+
+{% block container %}
+    <div id="main" class="mb-3">
+        <div class="container">
+            <div class="is-flex is-flex-direction-column is-align-items-center is-justify-content-center"
+                 style="min-height: 800px;">
+                <div class="box p-6 login-box">
+                    <p class="subtitle has-text-centered">{% block form-title %}登录{% endblock form-title %}</p>
+                    <h1 class="title is-size-3 has-text-centered">家电之选</h1>
+                    <div class="dropdown-divider"></div>
+                    {% block form %}
+                    <form action="{% url 'user:login' %}" method="post">
+                        {% csrf_token %}
+                        {% if errmsg %}
+                        <article class="message is-danger">
+                            <div class="message-body">{{ errmsg }}</div>
+                        </article>
+                        {% endif %}
+                        <div class="field">
+                            <p class="control has-icons-left has-icons-right">
+                                {{ forms.username }}
+                                <span class="icon is-small is-left">
+                                    <i class="mdi mdi-account"></i>
+                                </span>
+                                <span class="icon is-small is-right">
+                                    <i class="mdi mdi-check"></i>
+                                </span>
+                            </p>
+                        </div>
+                        <div class="field">
+                            <p class="control has-icons-left">
+                                {{ forms.password }}
+                                <span class="icon is-small is-left">
+                                    <i class="mdi mdi-lock"></i>
+                                </span>
+                            </p>
+                        </div>
+                        <div class="field">
+                            <p class="control">
+                                <a href="{% url 'user:register' %}" class="is-size-7">还没有账号？立即注册！</a>
+                            </p>
+                        </div>
+                        <div class="field">
+                            <p class="control">
+                                <input class="button is-primary is-fullwidth" type="submit" value="登录">
+                            </p>
+                        </div>
+                    </form>
+                    {% endblock form %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock container %}

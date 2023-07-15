@@ -1,0 +1,172 @@
+<div class="column" id="userinfo">
+    {{ userinfo|json_script:"baykeuserinfo-data" }}
+    <div class="columns is-align-items-center is-marginless">
+        <div class="column is-2 has-text-grey-light">用户名</div>
+        <div class="column">{{ request.user.username }}</div>
+    </div>
+    <div class="dropdown-divider is-marginless"></div>
+
+    <div class="columns is-align-items-center is-marginless">
+        <div class="column is-2 has-text-grey-light">手机号</div>
+        <div class="column is-flex is-justify-content-space-between is-align-items-center" id="phone">
+            {% if userinfo.phone %}
+                <p v-if="!editphone">{{ userinfo.phone }}</p>
+            {% else %}
+                <p v-if="!editphone">暂无手机号</p>
+            {% endif %}
+            <div>
+                <b-input 
+                    v-if="editphone" 
+                    size="is-small" 
+                    v-model="phone"
+                    @blur="updateUserinfo('phone')">
+                </b-input>
+            </div> 
+            <button class="button is-primary is-small is-outlined" @click="clickUserinfo('phone')">修改</button>
+        </div>
+    </div> 
+    <div class="dropdown-divider is-marginless"></div>
+
+    <div class="columns is-align-items-center is-marginless">
+        <div class="column is-2 has-text-grey-light">邮箱</div>
+        <div class="column is-flex is-justify-content-space-between is-align-items-center">
+            <p v-if="!editemail">{{ userinfo.email }}</p>
+            <div>
+                <b-input type="email"
+                    v-if="editemail"
+                    size="is-small"
+                    v-model="email"
+                    :has-counter="false"
+                    @blur="updateUserinfo('email')"
+                    maxlength="30">
+                </b-input>
+            </div>
+            <button class="button is-primary is-small is-outlined" @click="clickUserinfo('email')">修改</button>
+        </div>
+    </div>
+    <div class="dropdown-divider is-marginless"></div>
+
+    <div class="columns is-align-items-center is-marginless">
+        <div class="column is-2 has-text-grey-light">余额</div>
+        <div class="column is-flex is-justify-content-space-between is-align-items-center">
+            <p>¥ {{ userinfo.balance }}</p>
+            <p>
+                <button class=" button is-primary is-light is-small" @click="recharge()" id="recharge">
+                    <span class="icon"><i class="mdi mdi-credit-card-settings-outline"></i></span>
+                    <span class="text">充值</span>
+                </button>
+            </p>
+        </div>
+    </div>
+    <div class="dropdown-divider is-marginless"></div>
+
+    <div class="columns is-align-items-center is-marginless">
+        <div class="column is-2 has-text-grey-light">个人简介</div>
+        <div class="column is-flex is-justify-content-space-between is-align-items-center">
+            <p v-if="!editedesc">{{ userinfo.introduce }}</p>
+            <div class=" is-flex-grow-1 mr-5">
+                <b-input type="textarea"
+                    v-if="editedesc"
+                    size="is-small"
+                    v-model="desc"
+                    :has-counter="false"
+                    @blur="updateUserinfo('desc')"
+                    maxlength="150">
+                </b-input>
+            </div>
+            <button class="button is-primary is-small is-outlined" @click="clickUserinfo('desc')">修改</button>
+
+        </div>
+    </div>
+    <div class="dropdown-divider is-marginless"></div>
+</div>
+<script>
+    var userinfo = new Vue({
+        el: '#userinfo',
+        delimiters: ['{$', '$}'],
+        data: {
+            editphone: false,
+            editemail: false,
+            editedesc: false
+        },
+        methods: {
+            clickUserinfo(name){
+                if (name == 'phone'){
+                    this.editphone = true
+                }else if (name == 'email'){
+                    this.editemail = true
+                }else if (name == 'desc'){
+                    this.editedesc = true
+                }
+            },
+            updateUserinfo(name){
+                if (name == 'phone'){
+                    this.editphone = false
+                    if (this.phone !== '{{ userinfo.phone }}'){
+                        this.patchClientUserinfo({phone: this.phone})
+                    }
+                }else if (name == 'email'){
+                    this.editemail = false
+                    if (this.email !== '{{ userinfo.email }}'){
+                        this.patchClientUserinfo({email: this.email})
+                    }
+                }else if (name == 'desc'){
+                    this.editedesc = false
+                    if (this.desc !== '{{ userinfo.introduce }}'){
+                        this.patchClientUserinfo({introduce: this.desc})
+                    }
+                }
+            },
+            patchClientUserinfo(data){
+                request({
+                    url: '{% url "user:user" %}',
+                    method: 'patch',
+                    data: data
+                }).then(res => {
+                    if (res.data.status === 200){
+                        bayke.toastMessage('is-success', '修改成功');
+                        setTimeout(() => {
+                            {#location.href = "{% url 'user:user' %}"#}
+                            location.reload()
+                        }, 2000);
+                    }else {
+                        if (!this.editphone){
+                            this.editphone = true
+                        }else if (!this.editemail){
+                            this.editemail = true
+                        }
+                        bayke.toastMessage('is-danger', res.data.errmsg);
+                    }
+                })
+            },
+            recharge() {
+                let result = confirm('请验证管理员身份');
+                if(result) {
+                     this.username = prompt('请输入管理员账号：');
+                     this.password = prompt('请输入管理员密码：');
+                     this.money = prompt('请输入要充值的数量（元）：');
+                     request({
+                        url: "{% url 'user:recharge' %}",
+                        method: 'post',
+                        data: {
+                            username: this.username,
+                            password: this.password,
+                            money: this.money
+                        }
+                     }).then(res => {
+                        if(res.data.status == 200) {
+                            bayke.toastMessage('is-success', '充值成功');
+                            setTimeout(() => {
+                                location.href = "{% url 'user:user' %}"
+                            }, 2000);
+                        }
+                        else {
+                            bayke.toastMessage('is-danger', res.data.errmsg);
+                        }
+                    })
+                }
+            },
+
+        },
+    });
+</script>
