@@ -129,8 +129,7 @@ python manage.py runserver
 ## 项目部分功能展示
 
 注册页面
-
-![](media\project-show\注册.png)
+![](media/project-show/注册.png)
 
 登录页面
 
