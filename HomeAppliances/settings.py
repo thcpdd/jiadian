@@ -69,9 +69,9 @@ WSGI_APPLICATION = "HomeAppliances.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": 'home_appliances',
+        "NAME": '',
         "USER": 'root',
-        "PASSWORD": '000000',
+        "PASSWORD": '',
         "PORT": '3306',
         "HOST": 'localhost',
         'OPTIONS': {
@@ -131,9 +131,9 @@ AUTH_USER_MODEL = 'user.MyUser'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.163.com'
 EMAIL_PORT = 25
-EMAIL_HOST_USER = '19167820287@163.com'
-EMAIL_HOST_PASSWORD = 'UVUYUMMRRGQBCYER'
-EMAIL_FROM = '家电之选-邮箱官方<19167820287@163.com>'
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_FROM = ''
 
 # 注册随机验证码
 CODE_CHARS = 'abcdefghijklmnopqrstuvwsyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
