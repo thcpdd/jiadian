@@ -404,7 +404,7 @@ RECHARGE_SYSTEM = True
 
 1. 首先需要注册并登录账号，进入用户个人中心界面，再点击充值按钮。
 
-![](E:\Web项目阶段\家电之选\HomeAppliances\media\project-show\充值.png)
+![](media/project-show/充值.png)
 
 2. 需要验证管理员身份即可完成充值。
 
