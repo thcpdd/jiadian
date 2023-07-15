@@ -1,4 +1,0 @@
-INSERT INTO home_appliances.goods_type (id, create_time, update_time, is_delete, name, image, logo) VALUES (1, '2023-07-09 14:54:01.121517', '2023-07-09 14:54:01.121517', 0, '智能设备', 'goods_type/1_x6OcLvJ.png', 'intelligence');
-INSERT INTO home_appliances.goods_type (id, create_time, update_time, is_delete, name, image, logo) VALUES (2, '2023-07-09 14:56:34.549745', '2023-07-09 14:57:12.875280', 0, '家用电器', 'goods_type/2_cVRo4W9.png', 'electricity');
-INSERT INTO home_appliances.goods_type (id, create_time, update_time, is_delete, name, image, logo) VALUES (3, '2023-07-09 14:58:01.911198', '2023-07-09 14:58:01.911198', 0, '电脑产品', 'goods_type/3_omweQUe.png', 'computer');
-INSERT INTO home_appliances.goods_type (id, create_time, update_time, is_delete, name, image, logo) VALUES (4, '2023-07-09 14:58:12.566140', '2023-07-09 14:58:12.566140', 0, '高端耳机', 'goods_type/4_DnUE9BF.png', 'headset');
