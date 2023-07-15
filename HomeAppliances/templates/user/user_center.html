@@ -1,0 +1,138 @@
+{% extends 'base_templates/base.html' %}
+
+{% load static %}
+
+{% block title %}{{ request.user.username }} - 个人中心{% endblock title %}
+
+{% block breadcrumb %}
+    <div class="container">
+        <nav class="breadcrumb is-marginless mt-3 mb-3 is-small" aria-label="breadcrumbs">
+            <ul>
+                <li><a href="{% url 'goods:index' %}">首页</a></li>
+                <li class="is-active"><a href="{% url 'user:user' %}" aria-current="page">个人中心</a></li>
+            </ul>
+        </nav>
+    </div>
+{% endblock breadcrumb %}
+
+{% block container %}
+    <div class="container">
+        <div class="columns">
+            <div class="column is-2">
+                <div class="box is-radiusless is-marginless is-flex is-flex-direction-column is-align-items-center">
+                    <figure class="image is-64x64">
+                        <img class="is-rounded" src="{{ request.user.image.url }}" alt="文件异常">
+                    </figure>
+                    <p class="mt-2">{{ request.user.username }}</p>
+                    <div id="modify_img">
+                        <input id="input_img" class="button is-primary is-small is-outlined" style="display: none"
+                           type="file">
+                        <button id="modify" class="button is-primary is-small is-outlined" style="margin-top: 10px"
+                                @click="modify_image()">更换头像
+                        </button>
+                        <button type="submit" id="submit" class="button is-primary is-small is-outlined"
+                                style="display: none; margin-top: 10px" @click="submit_image()">确认
+                        </button>
+                    </div>
+                    <script>
+                    var modify = new Vue({
+                        el: '#modify_img',
+                        methods: {
+                            modify_image() {
+                                var ele = document.getElementById('input_img');
+                                ele.click();
+                                ele.addEventListener("change", function () {
+                                    // 隐藏更换头像按钮
+                                    var modifyButton = document.getElementById("modify");
+                                    modifyButton.style.display = "none";
+
+                                    bayke.toastMessage('is-success', '文件上传成功！点击确认按钮以完成头像修改')
+
+                                    // 显示提交按钮
+                                    var submitButton = document.getElementById("submit");
+                                    submitButton.style.display = "inline-block";
+                                });
+                            },
+                            // 详见官方文档
+                            getCookie(name) {
+                                var cookieValue = null;
+                                if (document.cookie && document.cookie !== '') {
+                                    var cookies = document.cookie.split(';');
+                                    for (var i = 0; i < cookies.length; i++) {
+                                        var cookie = cookies[i].trim();
+                                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                            break;
+                                        }
+                                    }
+                                }
+                                return cookieValue;
+                            },
+                            // 点击确认按钮
+                            submit_image() {
+                                var fileInput = document.getElementById("input_img");
+                                var csrfmiddlewaretoken = getCookie('csrftoken');
+                                var selectedFile = fileInput.files[0];
+
+                                var formData = new FormData();
+
+                                formData.append("image", selectedFile);
+                                request({
+                                    url: "{% url 'user:image' %}",
+                                    method: 'post',
+                                    data: formData,
+                                    headers: {
+                                        "X-CSRFToken": csrfmiddlewaretoken
+                                    }
+                                }).then(res => {
+                                    if(res.status == 200) {
+                                        bayke.toastMessage('is-success', '头像修改成功');
+                                        setTimeout(() => {
+                                            location.reload()
+                                        }, 2000);
+                                    }
+                                    else {
+                                        bayke.toastMessage('is-danger', res.data.errmsg);
+                                    }
+                                })
+                            }
+                        }
+                    })
+                </script>
+                </div>
+                <div class="box is-radiusless">
+                    <aside class="menu">
+                        <p class="menu-label">账户管理</p>
+                        <ul class="menu-list">
+                            <li><a href="{% url 'user:user' %}"
+                                   class="{% if active == 'userinfo' %} is-active {% endif %}">个人信息</a></li>
+                            <li><a href="{% url 'user:balance' %}"
+                                   class="{% if active == 'balance' %} is-active {% endif %}">我的余额</a></li>
+                            <li><a href="{% url 'user:address' %}"
+                                   class="{% if active == 'address' %} is-active {% endif %}">地址管理</a></li>
+                        </ul>
+                        <p class="menu-label">订单管理</p>
+                        <ul class="menu-list">
+                            <li><a href="{% url 'user:my_order' 1 %}?sort=0"
+                                   class="{% if active == 'order' %} is-active {% endif %}">我的订单</a></li>
+                        </ul>
+                    </aside>
+                </div>
+            </div>
+            <div class="column">
+                <div class="box is-radiusless">
+                    <h1 class="is-size-4">
+                        {% block menmber_title %}个人中心{% endblock %}
+                    </h1>
+                    <div class="dropdown-divider"></div>
+                    {% block menmber %}
+                        <div class="columns pt-3 pb-3">
+                            <div class=" column is-2">个人信息</div>
+                            {% include 'base_templates/userinfo.html' %}
+                        </div>
+                    {% endblock menmber %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock container %}

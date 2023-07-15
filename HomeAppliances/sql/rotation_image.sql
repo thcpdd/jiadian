@@ -1,0 +1,4 @@
+INSERT INTO home_appliances.rotation_image (id, create_time, update_time, is_delete, name, is_rotate, image) VALUES (1, '2023-07-09 15:00:41.306056', '2023-07-09 15:00:41.306056', 0, '轮播图1', 1, 'rotation/1_DjWla8K_kF9Rfds.jpg');
+INSERT INTO home_appliances.rotation_image (id, create_time, update_time, is_delete, name, is_rotate, image) VALUES (2, '2023-07-09 15:03:04.873662', '2023-07-09 15:03:04.874741', 0, '轮播图2', 1, 'rotation/2_PMofWgx_GFIFStf.jpg');
+INSERT INTO home_appliances.rotation_image (id, create_time, update_time, is_delete, name, is_rotate, image) VALUES (3, '2023-07-09 15:03:19.152140', '2023-07-09 15:03:19.152140', 0, '轮播图3', 1, 'rotation/3_o1h8lJg_LYRuwoX.jpg');
+INSERT INTO home_appliances.rotation_image (id, create_time, update_time, is_delete, name, is_rotate, image) VALUES (4, '2023-07-09 15:03:26.210895', '2023-07-09 15:03:26.210895', 0, '轮播图4', 1, 'rotation/4_2o0dwHl_f72YIQS.jpg');

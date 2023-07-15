@@ -1,0 +1,99 @@
+{% extends 'user/user_center.html' %}
+
+{% block menmber_title %}我的订单{% endblock %}
+
+{% block menmber %}
+    <style>
+        .b-tooltip:not(:last-child) {
+            margin-right: .5em
+        }
+
+        .b-tooltip {
+            margin-bottom: .5em
+        }
+    </style>
+
+    <div class="tabs is-boxed is-fullwidth">
+        <ul>
+            <li class="{% if not sort %} is-active {% endif %}"><a
+                    href="{% url 'user:my_order' 1 %}?sort=0">全部订单</a></li>
+            <li class="{% if sort == 1 %} is-active {% endif %}"><a href="{% url 'user:my_order' 1 %}?sort=1">待支付</a>
+            </li>
+            <li class="{% if sort == 2 %} is-active {% endif %}"><a href="{% url 'user:my_order' 1 %}?sort=2">待发货</a>
+            </li>
+            <li class="{% if sort == 3 %} is-active {% endif %}"><a href="{% url 'user:my_order' 1 %}?sort=3">待收货</a>
+            </li>
+            <li class="{% if sort == 4 %} is-active {% endif %}"><a href="{% url 'user:my_order' 1 %}?sort=4">待评价</a>
+            </li>
+            <li class="{% if sort == 5 %} is-active {% endif %}"><a href="{% url 'user:my_order' 1 %}?sort=5">已完成</a>
+            </li>
+        </ul>
+    </div>
+
+    <div id="confirmAction" class="mb-3">
+        {% for order in pages.object_list %}
+            <div class="box has-background-light is-shadowless">
+                <div class="is-flex is-justify-content-space-between">
+                    <div class=" has-text-grey-light1">订单日期：{{ order.update_time }}</div>
+                    <div class=" has-text-danger-dark">
+                        {{ order.pay_status }}
+                    </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                {% for sub_order in order.sub_orders %}
+                    <div class="is-flex is-justify-content-space-between">
+                        <div>
+                            <figure class=" image is-96x96">
+                                <img src="{{ sub_order.image }}" alt="{{ sub_order.name }}" srcset="">
+                            </figure>
+                        </div>
+                        <div class="has-background-danger1 is-flex is-flex-direction-column is-justify-content-center is-flex-grow-1 pl-3 pr-3">
+                            <h1 class="has-text-weight-bold">{{ sub_order.name }}</h1>
+                            <div class="is-flex">
+                                {% for option in sub_order.options %}
+                                    <span class="mr-3 has-text-grey-light">{{ option.spec }}：{{ option.name }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="has-background-danger1 is-flex is-justify-content-center is-align-items-center">
+                            <p class="has-text-danger-dark">¥ {{ sub_order.goods_dynamics.price }}
+                                x {{ sub_order.count }}</p>
+                        </div>
+                    </div>
+
+                    <div class="dropdown-divider"></div>
+                {% endfor %}
+
+                {% include 'base_templates/action.html' %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-3">
+        <nav class="pagination is-small" role="navigation" aria-label="pagination">
+            <ul class="pagination-list">
+                {% if pages.has_previous %}
+                    <li><a class="pagination-link"
+                           href="{% url 'user:my_order'  pages.previous_page_number %}?sort={{ sort }}">上一页</a></li>
+                {% endif %}
+                {% for page in pages.paginator.page_range %}
+                    {% if page == pages.number %}
+                        <li><a class="pagination-link is-current"
+                               href="{% url 'user:my_order'  page %}?sort={{ sort }}">{{ page }}</a></li>
+                    {% else %}
+                        <li><a class="pagination-link"
+                               href="{% url 'user:my_order' page %}?sort={{ sort }}">{{ page }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                {% if pages.has_next %}
+                    <li><a class="pagination-link"
+                           href="{% url 'user:my_order' pages.next_page_number %}?sort={{ sort }}">下一页</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+{% endblock menmber %}
+
+{% block vue %}{% endblock %}
+    

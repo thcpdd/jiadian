@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{% block stylesheet %}{% static "css/buefy.min.css" %}{% endblock %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/materialdesignicons.min.css' %}">
+    <script src="{% static 'js/axios.min.js' %}" type="text/javascript"></script>
+    <script src="{% static 'js/vue.js' %}" type="text/javascript"></script>
+    <script src="{% static 'js/buefy.min.js' %}" type="text/javascript"></script>
+    <script src="{% static 'js/http.js' %}" type="text/javascript"></script>
+    {% block extrahead_script %}{% endblock extrahead_script %}
+    {% block extrastyle %}{% endblock extrastyle %}
+</head>
+<body>
+
+{# 头部信息 #}
+{% block head_top %}
+    <div id="head-top">{% include 'base_templates/head_top.html' %}</div>
+{% endblock head_top %}
+
+{# 导航栏 #}
+{% block header %}
+    <div id="header">{% include 'base_templates/navbar.html' %}</div>
+{% endblock header %}
+
+<div id="main" class="mb-3">
+    {% block breadcrumb %}{% endblock breadcrumb %}
+    {% block banners %}{% endblock banners %}
+    <div class="container">
+        {% block container %}{% endblock container %}
+    </div>
+</div>
+
+{# 页脚 #}
+<div id="footer">
+    {% block footer %}
+        {% include 'base_templates/footer.html' %}
+    {% endblock %}
+</div>
+
+{% block vue %}{% endblock vue %}
+
+{% if messages %}
+    {% for message in messages %}
+        <div id="notification">
+            <b-notification
+                    auto-close
+                    {% if message.tags %}type="is-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} is-light"{% endif %}
+                    :duration="3000"
+                    has-icon
+                    position="is-top-right"
+                    aria-close-label="Close notification">
+                {{ message }}
+            </b-notification>
+        </div>
+    {% endfor %}
+    <script>
+        var notification = new Vue({
+            el: '#notification',
+            delimiters: ['{$', '$}'],
+        })
+    </script>
+{% endif %}
+</body>
+</html>
