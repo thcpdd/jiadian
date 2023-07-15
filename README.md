@@ -133,67 +133,67 @@ python manage.py runserver
 
 登录页面
 
-![](media\project-show\登录.png)
+![](media/project-show/登录.png)
 
 用户个人中心页面
 
-![](media\project-show\用户个人信息.png)
+![](media/project-show/用户个人信息.png)
 
 用户余额页面
 
-![](media\project-show\用户余额.png)
+![](media/project-show/用户余额.png)
 
 用户收货地址页面
 
-![](media\project-show\用户收货地址.png)
+![](media/project-show/用户收货地址.png)
 
 用户历史订单页面
 
-![](media\project-show\用户历史订单.png)
+![](media/project-show/用户历史订单.png)
 
 订单评价页面
 
-![](media\project-show\订单评价页面.png)
+![](media/project-show/订单评价页面.png)
 
 订单详情页面
 
-![](media\project-show\订单详情页.png)
+![](media/project-show/订单详情页.png)
 
 购物车页面
 
-![](media\project-show\购物车页面.png)
+![](media/project-show/购物车页面.png)
 
 订单页面
 
-![](media\project-show\结算页面.png)
+![](media/project-show/结算页面.png)
 
 商品列表页面
 
-![](media\project-show\商品列表页.png)
+![](media/project-show/商品列表页.png)
 
 商品详情页面
 
-![](media\project-show\商品详情页.png)
+![](media/project-show/商品详情页.png)
 
 首页一
 
-![](media\project-show\首页1.png)
+![](media/project-show/首页1.png)
 
 首页二
 
-![](media\project-show\首页2.png)
+![](media/project-show/首页2.png)
 
 首页三
 
-![](media\project-show\首页3.png)
+![](media/project-show/首页3.png)
 
 支付页面
 
-![](media\project-show\支付页面.png)
+![](media/project-show/支付页面.png)
 
 支付成功页面
 
-![](media\project-show\支付成功页面.png)
+![](media/project-show/支付成功页面.png)
 
 ##  数据库模型设计
 
