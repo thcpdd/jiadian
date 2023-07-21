@@ -15,6 +15,9 @@
 Python3.11，Django4.1，Mysql8.0
 
 
+## 项目演示
+[http://114.132.47.115:8000/](http://114.132.47.115:8000/)
+
 
 ## 项目环境配置
 
@@ -47,7 +50,7 @@ DATABASES = {
 
 ```python
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp'  # 你所用的邮箱的smtp地址，这里是网易邮箱的
+EMAIL_HOST = 'smtp.163.com'  # 你所用的邮箱的smtp地址，这里是网易邮箱的
 EMAIL_PORT = 25  # 你所用邮箱的端口号，这里时网易邮箱的
 EMAIL_HOST_USER = ''  # 你的邮箱账号
 EMAIL_HOST_PASSWORD = ''  # 你的邮箱授权码
