@@ -36,6 +36,14 @@ class SendCode(View):
             response['errmsg'] = '邮箱格式不正确'
             return JsonResponse(response)
 
+        # if email.split('@')[1] == 'qq.com':
+        #     qq = email.split('@')[1]
+        #     import requests
+        #     not_exist = requests.get(f'https://res.abeim.cn/api-qq?qq={qq}').text
+        #     if not_exist:
+        #         response['errmsg'] = 'QQ号不存在'
+        #         return JsonResponse(response)
+
         from random import choices
         code = ''.join(choices(settings.CODE_CHARS, k=6))
 
@@ -147,39 +155,53 @@ class UserCenterView(LoginRequiredMixin, View):
         }
         return render(request, 'user/user_center.html', context)
 
-    @staticmethod
-    def patch(request):
+    def patch(self, request):
         form_info = eval(request.body.decode('utf-8'))
         response = {
             'success': 0,
             'status': -1
         }
         user = MyUser.objects.get(id=request.user.id)
-        if 'email' in form_info:
-            if not match('.{5,20}@(qq|163|126|gmail|sina|hotmail|icould).com', form_info.get('email')):
-                response['errmsg'] = '邮箱格式不正确'
-                return JsonResponse(response)
-            user.email = form_info['email']
-        elif 'phone' in form_info:
-            if len(form_info['phone']) != 11 or not match('1[3-57-9][0-9]{9}', form_info['phone']):
-                response['errmsg'] = '手机号格式不正确'
-                return JsonResponse(response)
-            user.phone = form_info['phone']
-        else:
-            if not form_info.get('introduce'):
-                response['errmsg'] = '内容不能为空'
-                return JsonResponse(response)
-            introduce = form_info['introduce']
-            if '\n' in introduce:
-                introduce = introduce.replace('\n', '')
 
-            user.introduce = introduce
-            user.save()
+        update_dict = {
+            'email': self.update_email,
+            'phone': self.update_phone,
+            'introduce': self.update_introduce
+        }
+
+        update_key = list(form_info.keys())[0]
+
+        error_message = update_dict[update_key](user, response, form_info)  # 修改不成功返回错误信息
+
+        if error_message:
+            response['errmsg'] = error_message
+            return JsonResponse(response)
+
+        user.save()
 
         response['status'] = 200
         response['success'] = 1
 
         return JsonResponse(response)
+
+    @staticmethod
+    def update_email(user, response, form_info):
+        if not match('.{5,20}@(qq|163|126|gmail|sina|hotmail|icould).com', form_info.get('email')):
+            return '邮箱格式不正确'
+        user.email = form_info['email']
+
+    @staticmethod
+    def update_phone(user, response, form_info):
+        if len(form_info['phone']) != 11 or not match('1[3-57-9][0-9]{9}', form_info['phone']):
+            return '手机号格式不正确'
+        user.phone = form_info['phone']
+
+    @staticmethod
+    def update_introduce(user, response, form_info):
+        if not form_info.get('introduce'):
+            return '内容不能为空'
+        introduce = form_info['introduce']
+        user.introduce = introduce
 
 
 class BalanceView(LoginRequiredMixin, View):

@@ -6,7 +6,7 @@ from db.base_model import BaseModel
 # 拓展Django自带的用户模型类
 class MyUser(AbstractUser, BaseModel):
     phone = models.CharField('手机号', max_length=11, null=True)
-    introduce = models.CharField('个人介绍', max_length=100, default='', null=True)
+    introduce = models.TextField('个人介绍', default='', null=True)
     balance = models.DecimalField('余额', max_digits=11, decimal_places=2, default=0)  # 9位整数，2位小数
     total_recharge = models.DecimalField('累计充值', max_digits=11, decimal_places=2, default=0)
     total_consumption = models.DecimalField('累计消费', max_digits=11, decimal_places=2, default=0)

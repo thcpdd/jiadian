@@ -102,19 +102,25 @@
             updateUserinfo(name){
                 if (name == 'phone'){
                     this.editphone = false
-                    if (this.phone !== '{{ userinfo.phone }}'){
-                        this.patchClientUserinfo({phone: this.phone})
+                    if(!this.phone) {
+                        bayke.toastMessage('is-danger', '内容不能为空');
+                        return;
                     }
+                    this.patchClientUserinfo({phone: this.phone})
                 }else if (name == 'email'){
                     this.editemail = false
-                    if (this.email !== '{{ userinfo.email }}'){
-                        this.patchClientUserinfo({email: this.email})
+                    if(!this.email) {
+                        bayke.toastMessage('is-danger', '内容不能为空');
+                        return;
                     }
+                    this.patchClientUserinfo({email: this.email})
                 }else if (name == 'desc'){
                     this.editedesc = false
-                    if (this.desc !== '{{ userinfo.introduce }}'){
-                        this.patchClientUserinfo({introduce: this.desc})
+                    if(!this.desc) {
+                        bayke.toastMessage('is-danger', '内容不能为空');
+                        return;
                     }
+                    this.patchClientUserinfo({introduce: this.desc})
                 }
             },
             patchClientUserinfo(data){
