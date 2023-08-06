@@ -77,29 +77,52 @@
                             method: payMethod._data.defaultPay.value
                         }
                     }).then(res => {
-                        if(res.data.status == 200) {
-                            bayke.toastMessage('is-success', '订单支付成功，正在跳转...')
+                        // 捕获错误信息
+                        if (!res.data.success) {
+                            bayke.toastMessage('is-danger', res.data.errmsg);
+                            return
+                        }
+                        if (res.data.pay_method === 3) {
+                            bayke.toastMessage('is-success', '正在跳转到支付宝...')
                             setTimeout(() => {
-                                location.href = "{% url 'order:payok' order_id %}"
+                                window.open(res.data.payment_url)
                             }, 2000);
+                            this.check_alipay_status()  // 部署环境需要将其注释
+                        } else if (res.data.pay_method === 4) {
+                            this.pay_success()
                         }
-                        else {
-                            bayke.toastMessage('is-danger', res.data.errmsg)
-                        }
-                        /*
-                        if (res.data.method == 2) {
-                            bayke.toastMessage('is-success', '正在跳转支付宝收款...')
-                            location.href = res.data.alipayapi
-                        } else if (payMethod._data.defaultPay.value == 4 && res.data.pay_method == 4) {
-                            bayke.toastMessage('is-success', '支付成功，正在跳转...')
-                            setTimeout(() => {
-                                {#location.href = "{% url 'baykeshop:menmber-orders-retrieve' id %}"#}
-                                location.href = "#"
-                            }, 2000);
-                        }
-                        */
                     })
-
+                },
+                pay_success() {
+                    bayke.toastMessage('is-success', '订单支付成功，正在跳转...')
+                    setTimeout(() => {
+                        location.href = "{% url 'order:payok' order_id %}"
+                    }, 2000);
+                },
+                check_alipay_status() {
+                    const url = '{% url 'order:check' %}';  // 替换为后端视图的 URL
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json', // 根据后端要求设置适当的请求头部
+                            'X-CSRFToken': getCookie('csrftoken'),
+                        },
+                        body: JSON.stringify({
+                            trade_no: {{ trade_no }}
+                        })
+                    }).then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        }).then(data => {
+                            // 处理响应数据
+                            if (data.success) {
+                                this.pay_success()
+                            } else {
+                                bayke.toastMessage('is-danger', data.errmsg);
+                            }
+                        })
                 }
             },
         })

@@ -76,7 +76,7 @@
                     <li><a class="pagination-link"
                            href="{% url 'user:my_order'  pages.previous_page_number %}?sort={{ sort }}">上一页</a></li>
                 {% endif %}
-                {% for page in pages.paginator.page_range %}
+                {% for page in pages.my_page_range %}
                     {% if page == pages.number %}
                         <li><a class="pagination-link is-current"
                                href="{% url 'user:my_order'  page %}?sort={{ sort }}">{{ page }}</a></li>

@@ -153,6 +153,7 @@ class GoodsListView(BaseGoodsView):
         from db.base_model import MyPaginator
         paginator = MyPaginator(total_goods, 8)
         pages = paginator.page(page)
+        pages.my_page_range = paginator.show_part_page_range(page, num_pages=10)
 
         context = {
             'show_type': show_type,
@@ -190,6 +191,7 @@ class SearchView(BaseGoodsView):
         from db.base_model import MyPaginator
         paginator = MyPaginator(total_goods, 4)
         pages = paginator.page(page)
+        pages.my_page_range = paginator.show_part_page_range(page, num_pages=10)
 
         context = {
             'pages': pages,

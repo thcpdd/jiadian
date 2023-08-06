@@ -127,8 +127,9 @@ class LoginView(View):
             return render(request, 'user/login.html', context)
 
         login(request, user)
-
-        return redirect(reverse('user:user'))
+        next_url = request.GET.get('next', reverse('user:user'))
+        print(next_url)
+        return redirect(next_url)
 
 
 class LogoutView(View):
@@ -381,6 +382,7 @@ class UserOrderView(LoginRequiredMixin, View):
 
         paginator = MyPaginator(orders, 2)
         pages = paginator.page(page)
+        pages.my_page_range = paginator.show_part_page_range(page, num_pages=10)
 
         context = {
             'active': 'order',

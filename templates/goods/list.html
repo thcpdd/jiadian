@@ -111,7 +111,7 @@
                            href="{% url 'goods:list' show_type pages.previous_page_number %}{{ sorted }}">上一页</a>
                     </li>
                 {% endif %}
-                {% for page in pages.paginator.page_range %}
+                {% for page in pages.my_page_range %}
                     {% if page == pages.number %}
                         <li><a class="pagination-link is-current"
                                href="{% url 'goods:list' show_type page %}{{ sorted }}">{{ page }}</a></li>

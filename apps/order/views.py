@@ -5,6 +5,8 @@ from ..user.models import Address, MyUser
 from .models import GoodsOrder, OrderInfo
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
+from django.conf import settings
+from alipay import AliPay  # pip install python-alipay-sdk
 from django.db import transaction
 from django_redis import get_redis_connection
 from json import loads
@@ -171,12 +173,96 @@ class NowBuyView(LoginRequiredMixin, BaseGoodsView):
         return render(request, 'order/order_list.html', context)
 
 
+class AliPayView(BaseGoodsView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # 读取app私钥
+        with open('apps/order/app_private_key.pem', 'r', encoding='utf-8') as f1:
+            app_private_key_string = f1.read()
+
+        # 读取支付宝公钥
+        with open('apps/order/alipay_public_key.pem', 'r', encoding='utf-8') as f2:
+            alipay_public_key_string = f2.read()
+
+        self.alipay = AliPay(
+            appid=settings.ALIPAY_APP_ID,
+            app_private_key_string=app_private_key_string,
+            alipay_public_key_string=alipay_public_key_string,
+            debug=True  # 为True的时候调用沙箱接口，反之调用真实的支付接口
+        )
+
+    def get_alipay_url(self, order):
+        """获取支付宝支付链接"""
+        params = self.alipay.api_alipay_trade_page_pay(
+            out_trade_no=order.trade_no,
+            total_amount=float(order.total_price + order.freight),
+            subject='家电之选-订单支付',
+            # return_url='localhost/order/payok/%s' % order.order_id,  # 用户支付后返回的页面URL
+            return_url=None,  # 用户支付后返回的页面URL
+            notify_url=None  # 支付结果通知的URL
+        )
+
+        # kwfnjy1394@sandbox.com
+        payment_url = settings.ALIPAY_GATEWAY_URL + params
+
+        response = {
+            'status': 200,
+            'payment_url': payment_url,
+            'success': 1,
+            'pay_method': 3
+        }
+
+        return JsonResponse(response)
+
+    def post(self, request):
+        """校验支付结果（仅在生产环境中使用）"""
+        if not request.user.is_authenticated:
+            return JsonResponse({'status': -1, 'success': 0, 'errmsg': '用户未登录'})
+        from time import sleep
+        trade_no = eval(request.body).get('trade_no')
+        # 进入支付监听状态
+        try:
+            while True:
+                try:
+                    response = self.alipay.api_alipay_trade_query(trade_no)  # 查询支付状态
+                except Exception as e:
+                    return JsonResponse({'status': -1, 'errmsg': f'支付异常{e}', 'success': 0})
+                code = response.get('code')  # 支付状态码
+                trade_status = response.get('trade_status')  # 交易状态
+
+                if code == '40004' or (code == '10000' and trade_status == 'WAIT_BUYER_PAY'):  # 等待支付中……
+                    print('等待支付中……')
+                    sleep(5)
+                elif code == '10000' and trade_status == 'TRADE_SUCCESS':  # 支付成功
+                    try:
+                        order = OrderInfo.objects.get(trade_no=trade_no)
+                    except OrderInfo.DoesNotExist:
+                        return JsonResponse({'status': -1, 'success': 0, 'msg': '非法请求'})
+                    user = MyUser.objects.get(id=request.user.id)
+
+                    order.pay_method = 3
+                    order.status = 2
+                    user.total_consumption += (order.total_price + order.freight)
+
+                    user.save()
+                    order.save()  # views order base_model pay.html
+                    return JsonResponse({'status': 200, 'success': 1, 'msg': '订单支付成功'})
+                else:
+                    return JsonResponse({'status': -1, 'success': 0, 'errmsg': '支付失败'})
+        except TimeoutError:
+            self.alipay.api_alipay_trade_close(trade_no)  # 主动关闭交易
+            return JsonResponse({'status': -1, 'success': 0, 'errmsg': '支付时间过长，支付失败'})
+
+
 class PayView(LoginRequiredMixin, BaseGoodsView):
     def get(self, request, order_id):
         try:
             order_info = OrderInfo.objects.get(order_id=order_id)
         except OrderInfo.DoesNotExist:
             return redirect(reverse('goods:index'))
+
+        if order_info.status != 1:
+            return redirect(reverse('order:payok', kwargs={'order_id': order_id}))
 
         goods_orders = GoodsOrder.objects.filter(order_info_id=order_id)
         # 动态的为商品订单对象添加属性
@@ -229,26 +315,40 @@ class PayView(LoginRequiredMixin, BaseGoodsView):
     def post(request, order_id):
         pay_method = eval(request.body).get('method')
         user = MyUser.objects.get(id=request.user.id)
-        order = OrderInfo.objects.get(order_id=order_id)
+
         response = {
             'success': 0,
             'status': -1
         }
+        try:
+            order = OrderInfo.objects.get(order_id=order_id)
+        except OrderInfo.DoesNotExist:
+            response['errmsg'] = '订单不存在'
+            return JsonResponse(response)
+
+        if order.status != 1 and (2 <= order.status <= 5):
+            response['errmsg'] = '该订单已经支付过了，刷新页面试试'
+            return JsonResponse(response)
+
         if pay_method == 4:
             if user.balance < order.total_price + order.freight:
                 response['errmsg'] = '余额不足，请充值'
                 return JsonResponse(response)
 
-            order.pay_method = pay_method
+            order.pay_method = 4
             order.status = 2
-            user.balance -= order.total_price  # 余额减少
-            user.total_consumption += order.total_price  # 消费增加
+            user.balance -= (order.total_price + order.freight)  # 余额减少
+            user.total_consumption += (order.total_price + order.freight)  # 消费增加
 
             user.save()
             order.save()
             response['success'] = 1
             response['status'] = 200
+            response['pay_method'] = pay_method
             return JsonResponse(response)
+        elif pay_method == 3:
+            alipay = AliPayView()
+            return alipay.get_alipay_url(order)
         else:
             response['errmsg'] = '暂不支持该支付方式'
             return JsonResponse(response)
@@ -260,6 +360,20 @@ class PayOkView(LoginRequiredMixin, BaseGoodsView):
             order = OrderInfo.objects.get(order_id=order_id)
         except OrderInfo.DoesNotExist:
             return redirect(reverse('goods:index'))
+
+        request_params = request.GET.get('method')
+        if request_params == 'alipay.trade.page.pay.return':  # 部署环境使用支付宝支付
+            user = MyUser.objects.get(id=request.user.id)
+
+            order.pay_method = 3
+            order.status = 2
+            user.total_consumption += (order.total_price + order.freight)
+
+            user.save()
+            order.save()
+
+        if order.status == 1:  # 订单未支付则重定向至支付页面
+            return redirect(reverse('order:pay', kwargs={'order_id': order_id}))
 
         address = Address.objects.get(id=order.address_id)
 

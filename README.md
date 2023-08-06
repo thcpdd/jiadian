@@ -4,7 +4,7 @@
 
 ## 项目说明
 
-家电之选项目源于《拜客商城系统》（https://gitee.com/bayke/bayke-shop/tree/master），原项目采用Django-RestFramework框架开发，而本项目完全使用Django原生框架开发，语法简洁，通俗易懂。前端采用vue框架，使得网页变得更具互动性和动态性。后端采用Django-MTV设计模式，符合传统Web开发规范，适合中等偏下级别的程序员学习和开发。
+家电之选项目源于<a href="https://gitee.com/bayke/bayke-shop/tree/master">《拜客商城系统》</a>，原项目采用Django-RestFramework框架开发，而本项目完全使用Django原生框架开发，语法简洁，通俗易懂。前端采用vue框架，使得网页变得更具互动性和动态性。后端采用Django-MTV设计模式，符合传统Web开发规范，适合中等偏下级别的程序员学习和开发。
 
 *说明：本项目实现了原项目的百分之九十的功能，并在原有的功能上新增额外功能。*
 
@@ -15,16 +15,13 @@
 Python3.11，Django4.1，Mysql8.0
 
 
-## 项目演示
-[http://114.132.47.115:8000/](http://114.132.47.115:8000/)
-
 
 ## 项目环境配置
 
 1. 进入requirements.txt文件对应的目录下面，将该项目所依赖的包安装好。
 
 ```python
-pip install -r requirements.txt
+pip install -r requirements.txt  # requirements.txt生成命令：pip freeze > requirements.txt
 ```
 
 2. 创建相应的数据库并在settings文件里面配置对应的数据库信息。
@@ -51,7 +48,7 @@ DATABASES = {
 ```python
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.163.com'  # 你所用的邮箱的smtp地址，这里是网易邮箱的
-EMAIL_PORT = 25  # 你所用邮箱的端口号，这里时网易邮箱的
+EMAIL_PORT = 25  # 你所用邮箱的端口号，这里是网易邮箱的
 EMAIL_HOST_USER = ''  # 你的邮箱账号
 EMAIL_HOST_PASSWORD = ''  # 你的邮箱授权码
 EMAIL_FROM = ''  # 发件者信息，没有就填邮箱账号
@@ -132,6 +129,7 @@ python manage.py runserver
 ## 项目部分功能展示
 
 注册页面
+
 ![](media/project-show/注册.png)
 
 登录页面
@@ -395,7 +393,7 @@ def post(request):
 
 
 
-## 充值系统
+## 余额充值系统
 
 该项目的充值系统只是为了测试项目某些功能的可行性，如果想要用充值系统，那么需要修改settings文件下的RECHARGE_SYSTEM为True，否则会提示充值系统已关闭。
 
@@ -412,4 +410,160 @@ RECHARGE_SYSTEM = True
 2. 需要验证管理员身份即可完成充值。
 
 *说明：用户余额不能超过999999999.99，这样会充值失败，这是因为设计数据表时，账户余额不能超过这个数，想超过该数量的可以自己去数据库修改相应的字段即可。*
+
+
+
+## 支付宝功能开发
+
+### 功能说明
+
+由于没有正式的商家号，所以该功能使用的是支付宝的沙箱系统。也就是说，普通用户不能够完成支付，只有沙箱用户才能够完成支付。在这里提供一个已经注册好的沙箱用户（余额900多万，放心使用）。在项目目录下有一个名为：“alipay_sandbox_user_info.txt”的txt文件，打开即可看到沙箱用户名和密码（密码用于登录和支付）。
+
+### 网站与支付宝的通信原理
+
+网站在与支付宝接口通信时，需要传递一些参数。其中包括私钥和公钥（加密方式属于RSA2）。私钥：用于加密数据。公钥：用于解密数据。
+
+例如：网站向支付宝接口发送了一个查询支付状态的请求，那么首先网站会用app私钥加密自己的数据，然后将数据发送给支付宝接口，那么支付宝接口就会用网站的app公钥解密这个数据；当支付宝收到请求后，会返回一个响应，这个响应会用支付宝密钥进行加密，然后将响应返回给网站；当网站接收到响应后，会用支付宝公钥对数据进行解密。
+
+![](media/project-show/%E7%BD%91%E9%A1%B5%E4%B8%8E%E6%94%AF%E4%BB%98%E5%AE%9D%E9%80%9A%E4%BF%A1%E5%8E%9F%E7%90%86.png)
+
+所以为了保证双方能够正常的通信，网页需要拥有app密钥和支付宝公钥；而支付宝需要拥有app公钥和支付宝密钥。
+
+### 支付宝接口调用原理
+
+当用户选择使用支付宝的方式进行支付时，前端会像后端发送一个ajax请求，那么后端在接收到请求后，会返回一个支付宝的支付url给前端，此时前端需要引导用户去支付页面进行支付的操作，那么剩下的事情就交给支付宝了，与网站没有什么关系了。
+
+当用户完成支付后，支付宝会跳转到一个return_url（由后端进行配置）并且将支付结果告诉notify_url（由后端进行配置）。那么就由后端来进行相应的业务处理。
+
+![](media/project-show/%E6%94%AF%E4%BB%98%E5%AE%9D%E6%8E%A5%E5%8F%A3%E8%B0%83%E7%94%A8%E5%8E%9F%E7%90%86.png)
+
+### 接口使用前的准备
+
+在使用接口之前，需要前往支付宝官网申请好沙箱账号，<a href="https://openhome.alipay.com/develop/sandbox/app">点击前往</a>。
+
+在申请好沙箱账号后，支付宝会提供一些关键信息：
+
+1. APPID：要保存，在申请支付接口的时候要用到。
+2. 商家信息：可以不保存，用于在支付时显示的商家信息。
+3. 买家信息：要保存，需要保存买家的账号和密码，用于沙箱支付。
+4. 接口密钥：要保存app密钥和支付宝公钥，用于接口调用。
+5. 支付宝网关地址：要保存，用于拼接支付页面的url。
+
+对于app密钥和支付宝公钥，需要分别单独的保存到一个后缀名为“pem”的文件下面。
+
+app密钥需要在文件的首行和末行写好以下标识：
+
+```
+-----BEGIN RSA PRIVATE KEY-----  首行
+app密钥
+-----END RSA PRIVATE KEY-----  末行
+```
+
+同样支付宝公钥也需要配置：
+
+```
+-----BEGIN RSA PUBLIC KEY-----  首行
+支付宝公钥
+-----END RSA PUBLIC KEY-----  末行
+```
+
+### 支付宝接口的使用
+
+1. 由于使用的是沙箱环境，所以需要先安装第三方模块，在项目环境下执行pip命令：
+
+```python
+pip install python-alipay-sdk
+```
+
+2. 接口初始化：
+
+```python
+from alipay import Alipay
+alipay = AliPay(
+	appid=settings.ALIPAY_APP_ID,  # APPID，申请沙箱后会拥有
+	app_private_key_string=app_private_key_string,  # app密钥
+	alipay_public_key_string=alipay_public_key_string,  # 支付宝公钥
+	debug=True  # 为True的时候调用沙箱接口，反之调用真实的支付接口
+)
+```
+
+3. 支付接口参数的生成，几个必选参数：
+
+```python
+params = alipay.api_alipay_trade_page_pay(
+	out_trade_no=trade_no,  # 交易编号
+	total_amount=total_amount,  # 订单总价钱
+	subject=subject,  # 订单标题
+    # 用户支付后返回的页面URL，开发环境无法使用，部署环境才能生效。没有就写None
+	return_url='http协议+域名+路径',  
+	notify_url=None  # 支付结果通知的URL，没有就写None
+)
+```
+
+4. 支付接口的拼接：
+
+```python
+url = 'https://openapi-sandbox.dl.alipaydev.com/gateway.do?' + params  # 支付宝网关接口 + 支付宝接口参数
+```
+
+那么到这里，url就是支付宝的支付页面地址了，用户只需访问这个网址，即可完成支付。
+
+至于真正的代码怎么写（包括支付完成的后续），请参照项目源码。
+
+### 解决调用api_alipay_trade_query接口时报ssl证书的错误
+
+当调用该接口查询支付结果的时候报错：
+
+```python
+<urlopen error [SSL: CERTIFICATE_ _VERIFY_ FAILED] certificate verify failed: unable to get local issuer certificate (_ ssl.c:997 )>
+```
+
+该报错是由于相关ssl证书没有的原因造成的，一般会在部署环境时报错。
+
+我们需要在项目settings文件下编写以下代码：
+
+```python
+import ssl
+
+# 自定义 SSL 配置
+custom_ssl_context = ssl.create_default_context()
+custom_ssl_context.check_hostname = False
+custom_ssl_context.verify_mode = ssl.CERT_NONE
+
+# 将自定义 SSL 配置添加到 Django settings 中
+SSL_CONFIG = custom_ssl_context
+```
+
+接着找到alipay的init.py文件，找到verified_sync_response这个函数。
+
+```python
+def verified_sync_response(self, data, response_type):
+	url = self._gateway + "?" + self.sign_data(data)
+	raw_string = urlopen(url, timeout=self._config.timeout).read().decode()
+	return self._verify_and_return_sync_response(raw_string, response_type)
+```
+
+我们需要修改一下这个函数的源码，改成以下：
+
+```python
+def verified_sync_response(self, data, response_type):
+    from django.conf import settings  # 导入配置文件
+	url = self._gateway + "?" + self.sign_data(data)
+	raw_string = urlopen(url, timeout=self._config.timeout, context=settings.SSL_CONFIG).read().decode()  # 新增一个context的字段
+	return self._verify_and_return_sync_response(raw_string, response_type)
+```
+
+修改完后保存再重启项目即可解决该报错。
+
+
+
+
+
+
+
+
+
+
+
+
 
