@@ -164,3 +164,7 @@ SESSION_CACHE_ALIAS = 'default'
 
 # 是否启用充值系统
 RECHARGE_SYSTEM = False
+
+ALIPAY_APP_ID = 9021000124661429  # 支付宝沙箱应用ID
+
+ALIPAY_GATEWAY_URL = 'https://openapi-sandbox.dl.alipaydev.com/gateway.do?'  # 支付宝网关url
