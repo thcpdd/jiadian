@@ -15,10 +15,6 @@
 Python3.11，Django4.1，Mysql8.0
 
 
-## 项目演示地址
-
-http://114.132.47.115:8000/
-
 
 ## 项目环境配置
 
@@ -429,7 +425,7 @@ RECHARGE_SYSTEM = True
 
 例如：网站向支付宝接口发送了一个查询支付状态的请求，那么首先网站会用app私钥加密自己的数据，然后将数据发送给支付宝接口，那么支付宝接口就会用网站的app公钥解密这个数据；当支付宝收到请求后，会返回一个响应，这个响应会用支付宝密钥进行加密，然后将响应返回给网站；当网站接收到响应后，会用支付宝公钥对数据进行解密。
 
-![](media/project-show/网页与支付宝通信原理.png)
+![](media/project-show/%E7%BD%91%E9%A1%B5%E4%B8%8E%E6%94%AF%E4%BB%98%E5%AE%9D%E9%80%9A%E4%BF%A1%E5%8E%9F%E7%90%86.png)
 
 所以为了保证双方能够正常的通信，网页需要拥有app密钥和支付宝公钥；而支付宝需要拥有app公钥和支付宝密钥。
 
@@ -439,7 +435,7 @@ RECHARGE_SYSTEM = True
 
 当用户完成支付后，支付宝会跳转到一个return_url（由后端进行配置）并且将支付结果告诉notify_url（由后端进行配置）。那么就由后端来进行相应的业务处理。
 
-![](media/project-show/支付宝接口调用原理.png)
+![](media/project-show/%E6%94%AF%E4%BB%98%E5%AE%9D%E6%8E%A5%E5%8F%A3%E8%B0%83%E7%94%A8%E5%8E%9F%E7%90%86.png)
 
 ### 接口使用前的准备
 
@@ -561,13 +557,363 @@ def verified_sync_response(self, data, response_type):
 
 
 
+## FastDFS分布式文件系统
+
+### FastDFS简述
+
+FastDFS 是一个开源的高性能分布式文件系统（DFS）。 它的主要功能包括：文件存储，文件同步和文件访问，以及高容量和负载平衡。主要解决了海量数据存储问题，特别适合以中小文件（建议范围：4KB < file_size <500MB）为载体的在线服务。
+
+FastDFS 系统有三个角色：跟踪服务器(Tracker Server)、存储服务器(Storage Server)和客户端(Client)。
+
+* **Tracker Server**：跟踪服务器，主要做调度工作，起到均衡的作用；负责管理所有的 storage server和 group，每个 storage 在启动后会连接 Tracker，告知自己所属 group 等信息，并保持周期性心跳。
+* **Storage Server**：存储服务器，主要提供容量和备份服务；以 group 为单位，每个 group 内可以有多台 storage server，数据互为备份。
+* **Client**：客户端，上传下载数据的服务器，也就是我们自己的项目所部署在的服务器。
+
+![](media/project-show/fastdfs%E5%9B%BE%E4%BE%8B.png)
+
+其为了支持大容量，存储节点（服务器）采用了分卷（或分组）的组织方式。存储系统由一个或多个卷组成，卷与卷之间的文件是相互独立的，所有卷的文件容量累加就是整个存储系统中的文件容量。一个卷可以由一台或多台存储服务器组成，一个卷下的存储服务器中的文件都是相同的，卷中的多台存储服务器起到了冗余备份和负载均衡的作用。
+
+在卷中增加服务器时，同步已有的文件由系统自动完成，同步完成后，系统自动将新增服务器切换到线上提供服务。当存储空间不足或即将耗尽时，可以动态添加卷。只需要增加一台或多台服务器，并将它们配置为一个新的卷，这样就扩大了存储系统的容量。
+
+对于电商网站而言，随着商品数目的增多，毫无疑问是需要上传海量的图片的，如果只凭借Django默认的文件存储系统，那么久而久之就会增加应用的负担，从而降低网站的访问速度和用户的满意程度。
+
+### 安装FastDFS
+
+* 由于FastDFS暂时没有提供Windows版本，所以只能在Linux中安装。
+
+* 在安装之前需要开放两个端口：22122、23000。
+
+* 下载libfastcommon-master.zip文件
+
+  1. 执行以下命令下载。
+
+  ```powershell
+  wget https://github.com/happyfish100/libfastcommon/archive/V1.0.7.tar.gz
+  # 如果下载速度慢，可以前往百度网盘进行下载：https://pan.baidu.com/s/1YshX1HAt5CWa_N9UgFV1vA?pwd=yyq9
+  ```
+
+* 安装FastDFS需要先安装其依赖包
+
+  1. 解压下载的文件。
+
+  2. 进入解压后的目录。
+
+  3. 执行以下命令进行编译：
+
+  ```powershell
+  ./make.sh
+  ```
+
+  4. 执行以下命令安装依赖包：
+
+  ```powershell
+  sudo ./make.sh install
+  ```
+
+* 安装FastDFS
+
+  1. 下载fastdfs-master。
+
+  ```powershell
+  wget https://github.com/happyfish100/fastdfs/archive/V5.05.tar.gz
+  # 如果下载速度慢，可以前往百度网盘进行下载：https://pan.baidu.com/s/1YshX1HAt5CWa_N9UgFV1vA?pwd=yyq9
+  ```
+
+  2. 解压下载的文件。
+
+  3. 进入解压后的目录。
+
+  4. 执行编译命令：
+
+  ``` powershell
+  ./make.sh
+  ```
+
+  5. 安装
+
+  ```powershell
+  sudo ./make.sh install
+  ```
+
+* 配置跟踪服务器tracker
+
+  1. 复制一份配置文件：
+
+  ```powershell
+  sudo cp /etc/fdfs/tracker.conf.sample /etc/fdfs/tracker.conf
+  ```
+
+  2. 创建目录/home/python/fastdfs/tracker，用于存放日志信息。
+
+  ```powershell
+  mkdir /home/python/fastdfs/tracker
+  ```
+
+  3. 配置tracker信息：
+
+  ```powershell
+  sudo vim /etc/fdfs/tracker.conf
+  # 修改 base_path=/home/python/fastdfs/tracker
+  ```
+
+* 配置储存服务器storage
+
+  1. 复制一份配置文件：
+
+  ```powershell
+  sudo cp /etc/fdfs/storage.conf.sample /etc/fdfs/storage.conf
+  ```
+
+  2. 创建目录/home/python/fastdfs/storage，用于存放日志信息。
+
+  ```powershell
+  mkdir /home/python/fastdfs/storage
+  ```
+
+  3. 配置storage信息：
+
+  ```powershell
+  sudo vim /etc/fdfs/storage.conf
+  # 需要修改的信息如下：
+  # base_path=/home/python/fastdfs/storage
+  # store_path0=/home/python/fastdfs/storage
+  # tracker_server=虚拟机的ip地址:22122（在终端输入ifconfig，eth0中的inet后面那个就是虚拟机内网ip）
+  ```
+
+* 分别启动storage和tracker
+
+  1. 输入以下命令启动：
+
+  ```powershell
+  sudo service fdfs_trackerd start
+  sudo service fdfs_storaged start
+  ```
+
+  2. 检查启动情况：
+
+  ```powershell
+  ps aux | grep fdfs
+  ```
+
+  3. 可以看到已启动：
+
+  ![](media/project-show/fdfs%E5%90%AF%E5%8A%A8.png)
+
+* 尝试上传文件至分布式系统
+
+  1. 复制一个客户端配置文件：
+
+  ```powershell
+  sudo cp /etc/fdfs/client.conf.sample /etc/fdfs/client.conf
+  ```
+
+  2. 修改配置信息：
+
+  ```powershell
+  sudo vim /etc/fdfs/client.conf
+  # 需要修改的信息如下：
+  # base_path=/home/python/fastdfs/tracker
+  # tracker_server=虚拟机的ip地址:22122（在终端输入ifconfig，eth0中的inet后面那个就是虚拟机内网ip）
+  ```
+
+  3. 上传测试文件：
+
+  ```powershell
+  fdfs_upload_file /etc/fdfs/client.conf test.png
+  ```
+
+  4. 若返回“group1/M00/00/00/CgAMDmTi7rSAHWfiAABH9ekAtBY137.png”类似的信息表明FastDFS配置成功！
+
+### Nginx搭配FastDFS
+
+尽管FastDFS能够处理海量静态文件，但是一旦请求数目多起来，那么它的响应速度是会变慢的，所以这时候就需要处理静态文件的高手——Nginx来处理了。
+
+* 完成搭配之前需要确保安装好Nginx
+
+* 两者搭配使用需要安装一个依赖包
+
+  1. 解压缩名为fastdfs-nginx-module-master的文件。
+  2. 进入Nginx目录下，找到configure的文件，执行以下命令为Nginx添加依赖模块。
+
+  ```powershell
+  ./configure --add-module=/www/server/fastdfs/fastdfs-nginx-module-master/src
+  # 注意：除了添加上述模块以外，需用使用nginx -V命令查看已安装模块，并将这些已安装模块追加至上述命令。
+  ```
+
+  3. 分别执行以下命令编译并完成安装。
+
+  ```powershell
+  make
+  make install
+  ```
+
+  4. 查看是否安装完成。
+
+  ```powershell
+  nginx -V
+  ```
+
+  ![](media/project-show/%E6%A3%80%E6%9F%A5%E4%BE%9D%E8%B5%96.png)
+
+* 修改配置信息
+
+  1. 复制一份配置信息。
+
+  ```powershell
+  sudo cp fastdfs-nginx-module-master_path/src/mod_fastdfs.conf  /etc/fdfs/mod_fastdfs.conf
+  ```
+
+  2. 修改配置信息。
+
+  ```powershell
+  sudo vim /etc/fdfs/mod_fastdfs.conf
+  # 需要修改的信息：
+  # connect_timeout=10
+  # tracker_server=虚拟机的ip地址:22122（在终端输入ifconfig，eth0中的inet后面那个就是虚拟机内网ip）
+  # url_have_group_name=true  是否使用组名称
+  # store_path0=/home/python/fastdfs/storage
+  ```
+
+  3. 复制fastdfs-master目录中的http.conf和mime.types。
+
+  ```powershell
+  sudo cp fastdfs-master_path/http.conf  /etc/fdfs/http.conf
+  sudo cp fastdfs-master_path/mime.types /etc/fdfs/mime.types
+  # 这两个文件可能不在fastdfs-master的根目录中，可能在conf中。
+  ```
+
+* 在Nginx中的配置信息添加以下配置
+
+  ```nginx
+  # 在http的作用域中添加以下：
+  server {
+  	listen 8888;  # 这里是对外的端口，要与storage.conf中的http.server_port端口一致并在防火墙中打开。
+  	server_name 114.132.47.115;
+  	location ~ /group[0-9]/ {
+  		ngx_fastdfs_module;
+  	}
+  }
+  ```
+
+  重启Nginx后通过输入：域名+上述配置的端口+文件id，就可以访问文件了。
+
+### Python与FastDFS交互
+
+1. 进入项目虚拟环境并安装对应的依赖：
+
+```powershell
+pip install py3Fdfs
+```
+
+2. 测试是否能正常交互。
+
+```python
+from fdfs_client.client import get_tracker_conf, Fdfs_client
+
+tracker_conf = get_tracker_conf('/etc/fdfs/client.conf')  # client.conf的具体位置
+client = Fdfs_client(tracker_conf)  # 实例化对象
+client.upload_by_filename('media/img/noyue.png')  # 上传文件
+"""
+返回值应该是这样的：
+{'Group name': b'group1', 'Remote file_id': b'group1/M00/00/00/CgAMDmTjInCAPHyQAABH9ekAtBY301.png', 'Status': 'Upload successed.', 'Local file name': 'media/img/noyue.png', 'Uploaded size': '17.99KB', 'Storage IP': b'114.132.47.115'}
+"""
+```
+
+3. 若能够正常交互，就可以在Django中配置了。
+
+### 在Django中配置FastDFS
+
+由于Django用的是默认的文件存储类。也就是FileSystemStorage类，为了使用FastDFS，我们需要自定义文件系统类并继承 Storage类。
+
+1. 确保项目环境中有依赖包。
+
+```powershell
+pip install py3Fdfs
+```
+
+2. 在项目目录中创建一个py文件用于自定义文件存储类。
+3. 在该文件中写入以下内容：
+
+```python
+from django.core.files.storage import Storage
+from fdfs_client.client import Fdfs_client, get_tracker_conf
+from django.conf import settings
+
+
+# fastdfs文件存储类
+class FastDFSStorage(Storage):
+    def __init__(self, client_conf=None, base_url=None):
+        """初始化"""
+        self.client_conf = client_conf or settings.FDFS_CLIENT_CONF
+        self.base_url = base_url or settings.FDFS_URL
+
+    def _open(self, name, mode='rb'):
+        """打开文件时使用"""
+        pass
+
+    def _save(self, name, content):
+        """保存文件时使用"""
+        tracker_conf = get_tracker_conf(self.client_conf)  # client.conf的具体位置
+        client = Fdfs_client(tracker_conf)  # 创建一个client对象
+    
+        res = client.upload_by_buffer(content.read())  # 上传文件到fast dfs系统中
+        
+        if res.get('Status') != 'Upload successed.':
+            # 上传失败
+            raise Exception('上传文件到fast dfs失败')
+
+        # 获取返回的文件ID
+        filename = res.get('Remote file_id').decode()
+
+        return filename
+
+    def exists(self, name):
+        """Django判断文件名是否可用"""
+        return False
+
+    def url(self, name):
+        """
+        返回访问文件的url路径。
+        使用对象名.url的时候会调用该方法  image.url
+        """
+        return self.base_url + name
+
+```
+
+4. 在项目settings文件下加入以下内容：
+
+```python
+# 将Django默认的文件存储类改成自定义文件存储类
+DEFAULT_FILE_STORAGE = 'utils.fastdfs.fastdfs.FastDFSStorage'  # 自定义文件存储类的位置，变量名不能自定义
+
+# 配置信息路径
+FDFS_CLIENT_CONF = [BASE_DIR / 'utils/fastdfs/client.conf']  # 配置信息的路径，变量名字可以自定义
+
+# fastdfs的文件访问路径
+FDFS_URL = 'http/https://域名:storage.conf中的http.server_port端口/'  # 变量名字可以自定义
+```
+
+此时已经配置好了自定义文件存储类，当我们通过后台添加文件的时候，就会调用这个类。
+
+![](media/project-show/%E4%B8%8A%E4%BC%A0%E5%9B%BE%E7%89%87.png)
+
+当我们点击保存的时候，Django就会调用自定义的文件存储类，并向FastDFS上传该文件，此时FastDFS就会返回一个字典信息，通过自定义文件存储类中的_save方法，获取该文件的ID并直接保存至数据库中。
 
 
 
+## 部署环境中的celery
 
+在部署环境中，不能使用开发环境的命令来启动celery，要使用以下命令来启动celery。
 
+先进入项目虚拟环境，输入下面命令启动celery。
 
+```powershell
+celery multi start -A tasks worker
+```
 
+关闭celery
 
-
+```powershell
+celery multi stop -A tasks worker
+```
 
