@@ -468,10 +468,17 @@ class ModifyImageView(View):
 
         if not image:
             return JsonResponse({'success': 0, 'errmsg': '空文件'}, status=400)
-
+        
+        from fdfs_client.client import Fdfs_client, get_tracker_conf
+        from django.conf import settings
+        
+        tracker_conf = get_tracker_conf(settings.FDFS_CLIENT_CONF)  # client.conf的具体位置
+        client = Fdfs_client(tracker_conf)  # 创建一个client对象
+        response = client.upload_by_filename(image)
+        
         user = MyUser.objects.get(id=request.user.id)
 
-        user.image = image
+        user.image = response.get('Remote file_id').decode()
         user.save()
 
         return JsonResponse({'success': 1}, status=200)

@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, reverse, redirect
 from django.views import View
+from django.core.cache import cache
 from django.http import JsonResponse
 from .models import GoodsType, GoodsSKU, GoodsDynamics, GoodsImage, RotationCharts
 
@@ -30,17 +31,19 @@ class BaseGoodsView(View):
 
 class IndexView(BaseGoodsView):
     def get(self, request):
-        goods_types = GoodsType.objects.all()
-        for goods_type in goods_types:
-            sku = GoodsSKU.objects.filter(goods_type_id=goods_type.id).order_by('-update_time')[:4]
-            goods_type.navs = [s.goods_spu.name for s in sku]
+        context = cache.get('index_data')  # 从缓存中获取数据
 
-            goods_list = self.get_sku_image(sku)
-            goods_type.goods = goods_list
+        if not context:
+            goods_types = GoodsType.objects.all()
+            for goods_type in goods_types:
+                sku = GoodsSKU.objects.filter(goods_type_id=goods_type.id).order_by('-update_time')[:4]
+                goods_type.navs = [s.goods_spu.name for s in sku]
 
-        context = {
-            'goods_types': goods_types
-        }
+                goods_list = self.get_sku_image(sku)
+                goods_type.goods = goods_list
+
+            context = {'goods_types': goods_types}
+            cache.set('index_data', context, 60 * 60 * 2)  # 设置缓存为2小时
 
         return render(request, 'goods/index.html', context)
 
@@ -48,8 +51,11 @@ class IndexView(BaseGoodsView):
     def index_rotation(request):
         """首页轮播图"""
         if request.method == "GET":
-            rotations = RotationCharts.objects.filter(is_rotate=True)[:4]
-            rotations_list = [{'img': rotation.image.url, 'desc': rotation.name} for rotation in rotations]
+            rotations_list = cache.get('rotations_list')
+            if not rotations_list:
+                rotations = RotationCharts.objects.filter(is_rotate=True)[:4]
+                rotations_list = [{'img': rotation.image.url, 'desc': rotation.name} for rotation in rotations]
+                cache.set('rotations_list', rotations_list, 60 * 60 * 2)
             return JsonResponse({'data': rotations_list})
 
 
@@ -184,6 +190,8 @@ class SearchView(BaseGoodsView):
     def get(self, request, page):
         goods_types = self.get_navigation_info()  # 导航栏信息
         content = request.GET.get('search')  # 搜索内容
+        if not content:
+            return redirect(reverse('goods:list', kwargs={'show_type': 'all', 'page': 1}))
         goods_sku = GoodsSKU.objects.filter(name__icontains=content)  # 模糊查询
 
         total_goods = self.get_sku_image(goods_sku)

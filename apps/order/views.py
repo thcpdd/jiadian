@@ -130,6 +130,11 @@ class OrderView(LoginRequiredMixin, BaseGoodsView):
             return JsonResponse(response)
 
         transaction.savepoint_commit(save_id)  # 提交事务
+        # 倒计时完毕后用户未支付则删除订单
+        from celery_tasks.tasks import check_order_is_pay_task, get_delay_time
+        eta = get_delay_time(hours=24)
+        check_order_is_pay_task.apply_async(args=(order_id,), eta=eta)
+
         connect = get_redis_connection()
         dynamics_ids = list(map(lambda x: x['id'], dynamics_datas))  # 获取所有商品动态id
         connect.hdel(f'cart_{request.user.id}', *dynamics_ids)  # 清除购物车数据

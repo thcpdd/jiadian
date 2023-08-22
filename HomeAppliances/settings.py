@@ -11,9 +11,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-=%d$ih0!hp^#g=46@2-(=fr35btpmck&nh_k(ur@72v0g+63ig"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -69,9 +69,9 @@ WSGI_APPLICATION = "HomeAppliances.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": '',
+        "NAME": 'home_appliances',
         "USER": 'root',
-        "PASSWORD": '',
+        "PASSWORD": '000000',
         "PORT": '3306',
         "HOST": 'localhost',
         'OPTIONS': {
@@ -117,7 +117,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / 'static']
+# STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'static'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -131,9 +132,9 @@ AUTH_USER_MODEL = 'user.MyUser'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.163.com'
 EMAIL_PORT = 25
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
-EMAIL_FROM = ''
+EMAIL_HOST_USER = '19167820287@163.com'
+EMAIL_HOST_PASSWORD = 'UVUYUMMRRGQBCYER'
+EMAIL_FROM = '家电之选-邮箱官方<19167820287@163.com>'
 
 # 注册随机验证码
 CODE_CHARS = 'abcdefghijklmnopqrstuvwsyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -163,8 +164,28 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
 
 # 是否启用充值系统
-RECHARGE_SYSTEM = False
+RECHARGE_SYSTEM = True
 
 ALIPAY_APP_ID = 9021000124661429  # 支付宝沙箱应用ID
 
-ALIPAY_GATEWAY_URL = 'https://openapi-sandbox.dl.alipaydev.com/gateway.do?'  # 支付宝网关url
+ALIPAY_GATEWAY_URL = 'https://openapi-sandbox.dl.alipaydev.com/gateway.do?'  # 支付宝网关yrl
+# SECURE_CROSS_ORIGIN_OPENER_POLICY = 'None'
+
+import ssl
+
+# 自定义 SSL 配置
+custom_ssl_context = ssl.create_default_context()
+custom_ssl_context.check_hostname = False
+custom_ssl_context.verify_mode = ssl.CERT_NONE
+
+# 将自定义 SSL 配置添加到 Django settings 中
+SSL_CONFIG = custom_ssl_context
+
+# 自定义文件存储类
+DEFAULT_FILE_STORAGE = 'utils.fastdfs.fastdfs.FDFSStorage'
+
+# 配置信息路径
+FDFS_CLIENT_CONF = [BASE_DIR / 'utils/fastdfs/client.conf']
+
+# fastdfs的文件访问路径
+FDFS_URL = 'http/https://域名:端口/'

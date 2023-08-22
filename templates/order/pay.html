@@ -17,7 +17,7 @@
 
 {% block container %}
     <div class="box is-marginless is-radiusless has-background-primary-dark has-text-white-bis">
-        <h1 class="is-size-3">订单提交成功！去付款咯~</h1>
+        <h1 class="is-size-3">订单提交成功！订单将在24小时后过期，记得及时付款哟~</h1>
     </div>
     <div class="box is-radiusless" style="line-height: 30px;">
         <p>订单编号：{{ trade_no }}</p>
@@ -99,8 +99,9 @@
                         location.href = "{% url 'order:payok' order_id %}"
                     }, 2000);
                 },
+                /*
                 check_alipay_status() {
-                    const url = '{% url 'order:check' %}';  // 替换为后端视图的 URL
+                    {#const url = '{% url 'order:check' %}';  // 替换为后端视图的 URL#}
                     fetch(url, {
                         method: 'POST',
                         headers: {
@@ -108,7 +109,7 @@
                             'X-CSRFToken': getCookie('csrftoken'),
                         },
                         body: JSON.stringify({
-                            trade_no: {{ trade_no }}
+                            {#trade_no: {{ trade_no }}#}
                         })
                     }).then(response => {
                             if (!response.ok) {
@@ -123,7 +124,7 @@
                                 bayke.toastMessage('is-danger', data.errmsg);
                             }
                         })
-                }
+                }*/
             },
         })
     </script>
