@@ -3,7 +3,6 @@ from django.shortcuts import render, redirect, reverse
 from django.views import View
 from django.contrib.auth import login, logout
 from django.http import JsonResponse
-from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import authenticate
@@ -45,13 +44,11 @@ class SendCode(View):
         #         return JsonResponse(response)
 
         from random import choices
-        code = ''.join(choices(settings.CODE_CHARS, k=6))
+        from celery_tasks.tasks import send_register_email_task
 
-        subject = '家电之选-注册信息'
-        message = f'{username}，欢迎注册家电之选会员，这是注册验证码，两分钟内有效，请及时使用：{code}'
-        sender = settings.EMAIL_FROM
-        receiver = [email]
-        send_mail(subject, message, sender, receiver)
+        code = ''.join(choices(settings.CODE_CHARS, k=6))
+        send_register_email_task.delay(username, settings.EMAIL_FROM, email, code)
+
         request.session['code'] = code
         request.session.set_expiry(120)  # 验证码2分钟后过期
 
@@ -466,19 +463,19 @@ class ModifyImageView(View):
     def post(request):
         image = request.FILES.get('image')
 
+        from imghdr import what
+        if not what(image):
+            return JsonResponse({'success': 0, 'errmsg': '非法图片文件，请刷新页面重新上传'})
+
+        if image.size > 3145728:
+            return JsonResponse({'success': 0, 'errmsg': '文件大小不能超过3MB'})
+
         if not image:
-            return JsonResponse({'success': 0, 'errmsg': '空文件'}, status=400)
-        
-        from fdfs_client.client import Fdfs_client, get_tracker_conf
-        from django.conf import settings
-        
-        tracker_conf = get_tracker_conf(settings.FDFS_CLIENT_CONF)  # client.conf的具体位置
-        client = Fdfs_client(tracker_conf)  # 创建一个client对象
-        response = client.upload_by_filename(image)
-        
+            return JsonResponse({'success': 0, 'errmsg': '空文件'})
+
         user = MyUser.objects.get(id=request.user.id)
 
-        user.image = response.get('Remote file_id').decode()
+        user.image = image
         user.save()
 
-        return JsonResponse({'success': 1}, status=200)
+        return JsonResponse({'success': 1})

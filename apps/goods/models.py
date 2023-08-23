@@ -109,14 +109,14 @@ class RotationCharts(BaseModel):
 
 class GoodsComment(BaseModel):
     SCORE_CHOICE = (
-        (1, '好评'),
-        (2, '中评'),
-        (3, '差评')
+        (5, '好评'),
+        (3, '中评'),
+        (1, '差评')
     )
     from apps.order.models import GoodsOrder
     from ..user.models import MyUser
     content = models.CharField('评论内容', max_length=255)
-    score = models.SmallIntegerField('评分', choices=SCORE_CHOICE, default=1)
+    score = models.SmallIntegerField('评分', choices=SCORE_CHOICE, default=5)
     goods_order = models.ForeignKey(GoodsOrder, on_delete=models.CASCADE, verbose_name='商品订单', default='')
     goods_sku = models.ForeignKey(GoodsSKU, on_delete=models.CASCADE, verbose_name='商品sku', default='')
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE, verbose_name='所属用户', default='')

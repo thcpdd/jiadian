@@ -40,17 +40,17 @@
         <div class="block">
             <b-radio v-model="radio"
                 name="comment_choices"
-                native-value="1">
+                native-value="5">
                 好评
             </b-radio>
             <b-radio v-model="radio"
                 name="comment_choices"
-                native-value="2">
+                native-value="3">
                 中评
             </b-radio>
             <b-radio v-model="radio"
                 name="comment_choices"
-                native-value="3">
+                native-value="1">
                 差评
             </b-radio>
         </div>
@@ -71,7 +71,7 @@
             delimiters: ['{$', '$}'],
             data: {
                 content: '',
-                radio:'1'
+                radio:'5'
             },
             methods: {
                 pushComment(goods_order_id){

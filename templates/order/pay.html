@@ -86,6 +86,7 @@
                             bayke.toastMessage('is-success', '正在跳转到支付宝...')
                             setTimeout(() => {
                                 window.open(res.data.payment_url)
+                                // location.href = res.data.payment_url  生产环境
                             }, 2000);
                             this.check_alipay_status()  // 部署环境需要将其注释
                         } else if (res.data.pay_method === 4) {

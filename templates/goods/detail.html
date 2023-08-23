@@ -129,32 +129,53 @@
                     </b-button>
                 </div>
                 <!-- 加入购物车按钮及一键购买 -->
-
-                <!-- 详情 -->
                 <div class="box is-radiusless mt-3">
-                    <div class="b-tabs block">
-                        <nav class="tabs">
-                            <ul aria-orientation="horizontal" role="tablist">
-                                <li role="tab" aria-controls="49-content" aria-selected="true" class="is-active">
-                                    <a id="49-label" tabindex="0">
-                                        <span>商品详情</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
-                        <section class="tab-content">
-                            <div class="tab-item" role="tabpanel" id="49-content" aria-labelledby="49-label"
-                                 tabindex="0">
-                                <div class="content">
-                                    {% for goods_image in goods_images %}
-                                        <p><img src="{{ goods_image.img }}" alt="{{ goods_image.img }}"></p>
-                                    {% endfor %}
+                <b-tabs class="block">
+                    <b-tab-item label="商品详情">
+                        <div class="content">
+                            {% for goods_image in goods_images %}
+                                <p><img src="{{ goods_image.img }}" alt="{{ goods_image.img }}"></p>
+                            {% endfor %}
+                        </div>
+                    </b-tab-item>
+                    <b-tab-item label="商品评价">
+                        {% if comments %}
+                            <div class="is-flex is-justify-content-space-between p-2">
+                                <div class="">满意度：{{ satisfy }}%</div>
+                                <div class="is-flex is-align-items-center">
+                                    <span> 评分：</span>
+                                    <b-rate
+                                        :value="{{ score }}"
+                                        disabled
+                                        custom-text="{{ score }}分">
+                                    </b-rate>
                                 </div>
                             </div>
-                        </section>
-                    </div>
-                </div>
+                            <div class="dropdown-divider"></div>
+                        {% endif %}
+                        {% for comment in comments %}
+                            <article class="media">
+                                <figure class="media-left">
+                                    <p class="image is-32x32">
+                                        <img class="is-rounded" src="{{ comment.user.image.url }}" alt="图片异常">
+                                    </p>
+                                </figure>
+                                <div class="media-content">
+                                    <p>
+                                        {{ comment.user.username }}
+                                        <b-rate size="is-small" :value="{{ comment.score }}" disabled custom-text="{{ comment.score }}分"></b-rate>
+                                    </p>
+                                    <p class=" is-size-7">{{ comment.create_time }}</p>
+                                    <p class=" has-text-grey-light">{{ comment.content }}</p>
+                                </div>
+                            </article>
+                        {% empty %}
+                            <p class=" has-text-centered has-text-danger mt-6">还没有任何评价内容哦！</p>
+                        {% endfor %}
+                    </b-tab-item>
+                </b-tabs>
             </div>
+                <!-- 详情 -->
         </div>
         <div class="column is-2">
             <h1 class="has-text-centered has-background-white pt-3 is-size-6 pb-3 has-text-weight-bold">热销排行</h1>

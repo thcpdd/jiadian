@@ -9,10 +9,14 @@ class BaseGoodsView(View):
     @staticmethod
     def get_navigation_info():
         """导航栏信息"""
-        goods_types = GoodsType.objects.all()
-        for goods_type in goods_types:
-            sku = GoodsSKU.objects.filter(goods_type_id=goods_type.id)[:4]
-            goods_type.navs = [s.goods_spu.name for s in sku]
+        goods_types = cache.get('goods_types')
+
+        if not goods_types:
+            goods_types = GoodsType.objects.all()
+            for goods_type in goods_types:
+                sku = GoodsSKU.objects.filter(goods_type_id=goods_type.id)[:4]
+                goods_type.navs = [s.goods_spu.name for s in sku]
+            cache.set('goods_types', goods_types, 60 * 60 * 2)
 
         return goods_types
 
@@ -61,10 +65,14 @@ class IndexView(BaseGoodsView):
 
 class GoodsDetailView(BaseGoodsView):
     def get(self, request, goods_sku_id):
+        try:
+            goods = GoodsSKU.objects.get(id=goods_sku_id)
+        except GoodsSKU.DoesNotExist:
+            return redirect(reverse('goods:index'))
+
         goods_types = self.get_navigation_info()  # 导航栏信息
 
         # 查询该商品的所有图片
-        goods = GoodsSKU.objects.get(id=goods_sku_id)
         goods_dynamics = GoodsDynamics.objects.filter(goods_sku_id=goods_sku_id)
         goods_images = []
         for goods_dynamic in goods_dynamics:
@@ -76,6 +84,8 @@ class GoodsDetailView(BaseGoodsView):
         hot_goods = self.query_hot_goods(goods)
         # 查询商品的大小和颜色
         specs_data, product_data = self.query_goods_dynamics(goods_dynamics)
+        # 评分、满意度、评论
+        score, satisfy, comments = self.get_goods_comments(goods_sku_id)
 
         context = {
             'goods_types': goods_types,
@@ -83,9 +93,26 @@ class GoodsDetailView(BaseGoodsView):
             'goods_images': goods_images,
             'hot_goods': hot_goods,
             'specs_data': specs_data,
-            'product_data': product_data
+            'product_data': product_data,
+            'score': score,
+            'satisfy': satisfy,
+            'comments': comments
         }
         return render(request, 'goods/detail.html', context)
+
+    @staticmethod
+    def get_goods_comments(goods_sku_id):
+        from .models import GoodsComment
+        comments = GoodsComment.objects.filter(goods_sku_id=goods_sku_id).order_by('-create_time')
+        if not comments:
+            return 0, 0, None
+        # 总评分
+        amount_score = sum(map(lambda x: x.score, comments))
+        # 评分
+        score = round(amount_score / len(comments), 2)
+        # 满意度
+        satisfy = (len(list(filter(lambda x: x.score >= 3, comments))) / len(comments)) * 100
+        return score, round(satisfy, 2), comments
 
     @staticmethod
     def query_goods_dynamics(dynamics):

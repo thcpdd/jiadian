@@ -132,7 +132,7 @@ class OrderView(LoginRequiredMixin, BaseGoodsView):
         transaction.savepoint_commit(save_id)  # 提交事务
         # 倒计时完毕后用户未支付则删除订单
         from celery_tasks.tasks import check_order_is_pay_task, get_delay_time
-        eta = get_delay_time(hours=24)
+        eta = get_delay_time(hours=20)
         check_order_is_pay_task.apply_async(args=(order_id,), eta=eta)
 
         connect = get_redis_connection()
@@ -250,7 +250,7 @@ class AliPayView(BaseGoodsView):
                     user.total_consumption += (order.total_price + order.freight)
 
                     user.save()
-                    order.save()  # views order base_model pay.html
+                    order.save()
                     return JsonResponse({'status': 200, 'success': 1, 'msg': '订单支付成功'})
                 else:
                     return JsonResponse({'status': -1, 'success': 0, 'errmsg': '支付失败'})
@@ -347,6 +347,11 @@ class PayView(LoginRequiredMixin, BaseGoodsView):
 
             user.save()
             order.save()
+            # 自动发货
+            from celery_tasks.tasks import get_delay_time, automatic_shipping_task
+            eta = get_delay_time(minutes=5)
+            automatic_shipping_task.apply_async(args=(order_id,), eta=eta)
+
             response['success'] = 1
             response['status'] = 200
             response['pay_method'] = pay_method
@@ -376,6 +381,10 @@ class PayOkView(LoginRequiredMixin, BaseGoodsView):
 
             user.save()
             order.save()
+            # 自动发货
+            from celery_tasks.tasks import get_delay_time, automatic_shipping_task
+            eta = get_delay_time(minutes=5)
+            automatic_shipping_task.apply_async(args=(order_id,), eta=eta)
 
         if order.status == 1:  # 订单未支付则重定向至支付页面
             return redirect(reverse('order:pay', kwargs={'order_id': order_id}))
@@ -441,7 +450,7 @@ class GoodsCommentView(LoginRequiredMixin, BaseGoodsView):
             'status': -1
         }
 
-        if not all([content, goods_order_id]):
+        if not goods_order_id:
             response['errmsg'] = '数据不完整'
             return JsonResponse(response)
 
@@ -460,6 +469,9 @@ class GoodsCommentView(LoginRequiredMixin, BaseGoodsView):
             if goods_order.is_commented:
                 response['errmsg'] = '该商品已评价'
                 return JsonResponse(response)
+
+            if not content:
+                content = '该用户未给出评论'
 
             GoodsComment.objects.create(
                 content=content,
