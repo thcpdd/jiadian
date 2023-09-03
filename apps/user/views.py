@@ -358,7 +358,7 @@ class UserOrderView(LoginRequiredMixin, View):
     @staticmethod
     def get(request, page):
         from ..order.models import GoodsOrder, OrderInfo
-        from db.base_model import MyPaginator
+        from utils.paginator.paginator import MyPaginator
         from django.db.models import Q
 
         # 订单分类

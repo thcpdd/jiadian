@@ -183,7 +183,7 @@ class GoodsListView(BaseGoodsView):
         except IndexError:
             items = ''
 
-        from db.base_model import MyPaginator
+        from utils.paginator.paginator import MyPaginator
         paginator = MyPaginator(total_goods, 8)
         pages = paginator.page(page)
         pages.my_page_range = paginator.show_part_page_range(page, num_pages=10)
@@ -223,7 +223,7 @@ class SearchView(BaseGoodsView):
 
         total_goods = self.get_sku_image(goods_sku)
 
-        from db.base_model import MyPaginator
+        from utils.paginator.paginator import MyPaginator
         paginator = MyPaginator(total_goods, 4)
         pages = paginator.page(page)
         pages.my_page_range = paginator.show_part_page_range(page, num_pages=10)

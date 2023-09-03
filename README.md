@@ -14,8 +14,11 @@
 
 Python3.11，Django4.1，Mysql8.0
 
+
+
 ## 项目演示地址
-<a href="http://114.132.47.115:8000/">http://114.132.47.115:8000/</a>
+
+<a href="http://www.jiadianchoice.cn/">http://www.jiadianchoice.cn/</a>
 
 
 

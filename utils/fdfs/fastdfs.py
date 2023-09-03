@@ -21,6 +21,15 @@ class FDFSStorage(Storage):
 
         res = client.upload_by_buffer(content.read())  # 上传文件到fast dfs系统中
 
+        # dict
+        # {
+        #     'Group name': group_name,
+        #     'Remote file_id': remote_file_id,
+        #     'Status': 'Upload successed.',
+        #     'Local file name': '',
+        #     'Uploaded size': upload_size,
+        #     'Storage IP': storage_ip
+        # }
         if res.get('Status') != 'Upload successed.':
             # 上传失败
             raise Exception('上传文件到fast dfs失败')

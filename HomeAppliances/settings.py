@@ -3,7 +3,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -11,10 +10,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-=%d$ih0!hp^#g=46@2-(=fr35btpmck&nh_k(ur@72v0g+63ig"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['*']
-
+ALLOWED_HOSTS = []
 
 # Application definition
 
@@ -30,16 +28,20 @@ INSTALLED_APPS = [
     'apps.cart.apps.CartConfig',
     'apps.goods.apps.GoodsConfig',
     'apps.order.apps.OrderConfig',
+    'apps.rest_test.apps.RestTestConfig'
 ]
 
+# Django在接收到请求后会从下往上开始加载中间件，处理完请求后会从上到下加载中间件
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    'utils.middleware.request_path_check.CheckSendAPIMiddleware',  # 邮箱发送API中间件
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'utils.middleware.request_path_check.CheckAdminPathMiddleware'  # admin路径中间件
 ]
 
 ROOT_URLCONF = "HomeAppliances.urls"
@@ -62,7 +64,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "HomeAppliances.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
@@ -80,7 +81,6 @@ DATABASES = {
         }
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -100,7 +100,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
@@ -112,13 +111,11 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = "static/"
-# STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'static'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -168,24 +165,6 @@ RECHARGE_SYSTEM = True
 
 ALIPAY_APP_ID = 9021000124661429  # 支付宝沙箱应用ID
 
-ALIPAY_GATEWAY_URL = 'https://openapi-sandbox.dl.alipaydev.com/gateway.do?'  # 支付宝网关yrl
-# SECURE_CROSS_ORIGIN_OPENER_POLICY = 'None'
+ALIPAY_GATEWAY_URL = 'https://openapi-sandbox.dl.alipaydev.com/gateway.do?'  # 支付宝网关url
 
-import ssl
-
-# 自定义 SSL 配置
-custom_ssl_context = ssl.create_default_context()
-custom_ssl_context.check_hostname = False
-custom_ssl_context.verify_mode = ssl.CERT_NONE
-
-# 将自定义 SSL 配置添加到 Django settings 中
-SSL_CONFIG = custom_ssl_context
-
-# 自定义文件存储类
-DEFAULT_FILE_STORAGE = 'utils.fastdfs.fastdfs.FDFSStorage'
-
-# 配置信息路径
-FDFS_CLIENT_CONF = [BASE_DIR / 'utils/fastdfs/client.conf']
-
-# fastdfs的文件访问路径
-FDFS_URL = 'http/https://域名:端口/'
+DISALLOWED_REQUEST_PATH = ['/admin', '/admin/login/']
