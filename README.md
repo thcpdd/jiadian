@@ -18,7 +18,7 @@ Python3.11，Django4.1，Mysql8.0
 
 ## 项目演示地址
 
-<a href="http://www.jiadianchoice.cn/">http://www.jiadianchoice.cn/</a>
+<a href="http://jiadianchoice.cn/">http://jiadianchoice.cn/</a>
 
 
 
