@@ -55,9 +55,8 @@ class OrderView(LoginRequiredMixin, BaseGoodsView):
 
         return render(request, 'order/order_list.html', context)
 
-    @staticmethod
     @transaction.atomic  # 绑定事务
-    def post(request):
+    def post(self, request):
         form_data = eval(request.body)
         dynamics_datas = form_data.get('dynamics_datas')
         amount_price = form_data.get('amount_price')
@@ -97,6 +96,7 @@ class OrderView(LoginRequiredMixin, BaseGoodsView):
                 total_count=total_count,
                 trade_no=trade_no
             )
+            connect = get_redis_connection()
             for dynamics_data in dynamics_datas:
                 dynamics_id = dynamics_data.get('id')
                 count = dynamics_data.get('count')
@@ -132,10 +132,9 @@ class OrderView(LoginRequiredMixin, BaseGoodsView):
         transaction.savepoint_commit(save_id)  # 提交事务
         # 倒计时完毕后用户未支付则删除订单
         from celery_tasks.tasks import check_order_is_pay_task, get_delay_time
-        eta = get_delay_time(hours=20)
+        eta = get_delay_time(hours=24)
         check_order_is_pay_task.apply_async(args=(order_id,), eta=eta)
 
-        connect = get_redis_connection()
         dynamics_ids = list(map(lambda x: x['id'], dynamics_datas))  # 获取所有商品动态id
         connect.hdel(f'cart_{request.user.id}', *dynamics_ids)  # 清除购物车数据
 
@@ -196,18 +195,22 @@ class AliPayView(BaseGoodsView):
             debug=True  # 为True的时候调用沙箱接口，反之调用真实的支付接口
         )
 
+    @classmethod
+    def get_return_url(cls, order_id):
+        if settings.DEBUG:
+            return None
+        return ''.join(['http', '://', settings.HOST_NAME, f'/order/payok/{order_id}'])
+
     def get_alipay_url(self, order):
         """获取支付宝支付链接"""
         params = self.alipay.api_alipay_trade_page_pay(
             out_trade_no=order.trade_no,
             total_amount=float(order.total_price + order.freight),
             subject='家电之选-订单支付',
-            # return_url='localhost/order/payok/%s' % order.order_id,  # 用户支付后返回的页面URL
-            return_url=None,  # 用户支付后返回的页面URL
+            return_url=self.get_return_url(order.order_id),  # 用户支付后返回的页面URL
             notify_url=None  # 支付结果通知的URL
         )
 
-        # kwfnjy1394@sandbox.com
         payment_url = settings.ALIPAY_GATEWAY_URL + params
 
         response = {
@@ -220,7 +223,7 @@ class AliPayView(BaseGoodsView):
         return JsonResponse(response)
 
     def post(self, request):
-        """校验支付结果（仅在生产环境中使用）"""
+        """校验支付结果（仅在开发环境中使用）"""
         if not request.user.is_authenticated:
             return JsonResponse({'status': -1, 'success': 0, 'errmsg': '用户未登录'})
         from time import sleep
@@ -372,7 +375,7 @@ class PayOkView(LoginRequiredMixin, BaseGoodsView):
             return redirect(reverse('goods:index'))
 
         request_params = request.GET.get('method')
-        if request_params == 'alipay.trade.page.pay.return':  # 部署环境使用支付宝支付
+        if request_params == 'alipay.trade.page.pay.return':  # 生产环境使用支付宝支付
             user = MyUser.objects.get(id=request.user.id)
 
             order.pay_method = 3

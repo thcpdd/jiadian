@@ -85,10 +85,10 @@
                         if (res.data.pay_method === 3) {
                             bayke.toastMessage('is-success', '正在跳转到支付宝...')
                             setTimeout(() => {
-                                window.open(res.data.payment_url)
-                                // location.href = res.data.payment_url  生产环境
+                                window.open(res.data.payment_url)  // 开发环境
+                                // location.href = res.data.payment_url  // 生产环境
                             }, 2000);
-                            this.check_alipay_status()  // 部署环境需要将其注释
+                            this.check_alipay_status()  // 开发环境使用，生产环境需要将其注释
                         } else if (res.data.pay_method === 4) {
                             this.pay_success()
                         }
@@ -100,32 +100,32 @@
                         location.href = "{% url 'order:payok' order_id %}"
                     }, 2000);
                 },
-                /*
+                // 开发环境中监听支付宝支付状态
                 check_alipay_status() {
-                    {#const url = '{% url 'order:check' %}';  // 替换为后端视图的 URL#}
+                    const url = '{% url 'order:check' %}';
                     fetch(url, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json', // 根据后端要求设置适当的请求头部
+                            'Content-Type': 'application/json',
                             'X-CSRFToken': getCookie('csrftoken'),
                         },
                         body: JSON.stringify({
-                            {#trade_no: {{ trade_no }}#}
+                            trade_no: {{ trade_no }}
                         })
                     }).then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.json();
-                        }).then(data => {
-                            // 处理响应数据
-                            if (data.success) {
-                                this.pay_success()
-                            } else {
-                                bayke.toastMessage('is-danger', data.errmsg);
-                            }
-                        })
-                }*/
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    }).then(data => {
+                        // 处理响应数据
+                        if (data.success) {
+                            this.pay_success()
+                        } else {
+                            bayke.toastMessage('is-danger', data.errmsg);
+                        }
+                    })
+                }
             },
         })
     </script>

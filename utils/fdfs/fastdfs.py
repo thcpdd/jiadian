@@ -4,7 +4,7 @@ from django.conf import settings
 
 
 # fastdfs文件存储类
-class FDFSStorage(Storage):
+class FastDFSStorage(Storage):
     def __init__(self, client_conf=None, base_url=None):
         """初始化"""
         self.client_conf = client_conf or settings.FDFS_CLIENT_CONF

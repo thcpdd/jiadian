@@ -9,7 +9,8 @@ class LoginForm(AuthenticationForm):
         widget=forms.TextInput(attrs={
             "autofocus": True,
             "class": "input",
-            "placeholder": " 请输入用户名..."
+            "placeholder": " 请输入用户名...",
+            'value': 'rainbow'
         }))
     password = forms.CharField(
         label=gettext_lazy("Password"),
@@ -17,6 +18,7 @@ class LoginForm(AuthenticationForm):
         widget=forms.PasswordInput(attrs={
             "autocomplete": "current-password",
             "class": "input",
-            "placeholder": " 请输入密码..."
+            "placeholder": " 请输入密码...",
+            'value': 'rainbow'
         }),
     )

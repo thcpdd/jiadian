@@ -1,86 +1,96 @@
-# 家电之选在线商城
+# 家电之选
 
 ---
 
 ## 项目说明
 
-家电之选项目源于<a href="https://gitee.com/bayke/bayke-shop/tree/master">《拜客商城系统》</a>，原项目采用Django-RestFramework框架开发，而本项目完全使用Django原生框架开发，语法简洁，通俗易懂。前端采用vue框架，使得网页变得更具互动性和动态性。后端采用Django-MTV设计模式，符合传统Web开发规范，适合中等偏下级别的程序员学习和开发。
+家电之选项目源于<a href="https://gitee.com/bayke/bayke-shop/tree/master">《拜客商城系统》</a>，原项目采用`DRF(djangorestframework)`框架开发，而本项目完全使用`Django`原生框架开发，后端逻辑与原项目逻辑完全不一样，充分利用`Python`面向对象编程，逻辑清晰，语法简洁。前端采用`Vue2`框架，减少对`DOM`元素的操作。后端采用`Django-MTV`设计模式，符合传统网站开发规范，适合中等偏下级别的程序员学习和开发。
 
-*说明：本项目实现了原项目的百分之九十的功能，并在原有的功能上新增额外功能。*
+访问地址：<a href="http://jiadian.rainbow.hi.cn">http://jiadian.rainbow.hi.cn</a>
 
+项目完成时间：2023年7月15日
 
+功能迭代期：2023年7月16日——2023年9月3日
+
+## 项目收获
+
+这个项目和<a href="https://gitee.com/kill-my-teammates-first/fresh_everyday">天天生鲜</a>项目很像，都属于电商型项目。但是该项目在基本实现了天天生鲜项目已有的功能外，还增加许多新的功能，例如：使用`Vue`作为前端框架、支付宝沙箱支付、分布式文件系统等。
+
+1. 第一次独立完成整个后端逻辑，以及部分前端内容（前端发送请求以及Django模板部分）。
+2. 第一次独立设计整个数据库表结构。由于是第一次设计表结构，所以导致了一个表与表之间形成了循环关联的问题。
+3. 分布式文件系统的安装、配置以及使用。
+4. 调用支付宝接口的基本逻辑。
+5. 项目部署的基本流程。
+6. 域名注册及网站ICP备案。
+
+虽然这个项目仍然还是作为一个用于学习的项目，但是项目基本上所有的后端逻辑都经过了自己的思考，在这个项目中学到的东西是最多的，因此这让我的的后端开发能力有了一次从量到质的飞跃。
 
 ## 项目开发环境
 
 Python3.11，Django4.1，Mysql8.0
 
-
-
-## 项目演示地址
-
-<a href="http://jiadianchoice.cn/">http://jiadianchoice.cn/</a>
-
-
-
 ## 项目环境配置
 
 1. 进入requirements.txt文件对应的目录下面，将该项目所依赖的包安装好。
 
-```python
-pip install -r requirements.txt  # requirements.txt生成命令：pip freeze > requirements.txt
-```
+   ```python
+   pip install -r requirements.txt  # requirements.txt生成命令：pip freeze > requirements.txt
+   ```
 
 2. 创建相应的数据库并在settings文件里面配置对应的数据库信息。
 
-```python
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": '',  # 你的数据库的名称
-        "USER": '',  # 你的数据库的账号
-        "PASSWORD": '',  # 你的数据库的密码
-        "PORT": '3306',
-        "HOST": 'localhost',
-        'OPTIONS': {
-            'isolation_level': 'read committed',  # 设置Mysql事务隔离级别为'read committed'
-            "init_command": "SET foreign_key_checks = 0;",  # 迁移数据库时取消外键检查
-        }
-    }
-}
-```
+   ```python
+   DATABASES = {
+       "default": {
+           "ENGINE": "django.db.backends.mysql",
+           "NAME": '',  # 你的数据库的名称
+           "USER": '',  # 你的数据库的账号
+           "PASSWORD": '',  # 你的数据库的密码
+           "PORT": '3306',
+           "HOST": 'localhost',
+           'OPTIONS': {
+               'isolation_level': 'read committed',  # 设置Mysql事务隔离级别为'read committed'
+               "init_command": "SET foreign_key_checks = 0;",  # 迁移数据库时取消外键检查
+           }
+       }
+   }
+   ```
 
 3. 配置好发送邮箱信息。
 
-```python
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.163.com'  # 你所用的邮箱的smtp地址，这里是网易邮箱的
-EMAIL_PORT = 25  # 你所用邮箱的端口号，这里是网易邮箱的
-EMAIL_HOST_USER = ''  # 你的邮箱账号
-EMAIL_HOST_PASSWORD = ''  # 你的邮箱授权码
-EMAIL_FROM = ''  # 发件者信息，没有就填邮箱账号
-```
+   ```python
+   EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+   EMAIL_HOST = 'smtp.163.com'  # 你所用的邮箱的smtp地址，这里是网易邮箱的
+   EMAIL_PORT = 25  # 你所用邮箱的端口号，这里是网易邮箱的
+   EMAIL_HOST_USER = ''  # 你的邮箱账号
+   EMAIL_HOST_PASSWORD = ''  # 你的邮箱授权码
+   EMAIL_FROM = ''  # 发件者信息，没有就填邮箱账号
+   ```
 
 4. 在manage.py所对应的目录下执行迁移命令。
 
-```python
-python manage.py makemigrations
-python manage.py migrate
-```
+   在执行迁移命令之前，由于数据库表结构设计的缺陷，导致了一张表与另一张表的字段形成了循环关联，这两张表是：`/apps/goods/models.py`中的`GoodsComment`模型和`/apps/order/models.py`中的`GoodsOrder`模型。
+
+   解决办法是：将`GoodsComment`中的`goods_order`字段先注释，然后正常迁移一遍数据表。迁移完毕后取消注释，然后再迁移一遍就可以了。
+
+   ```python
+   python manage.py makemigrations
+   python manage.py migrate
+   ```
 
 5. 迁移完毕后执行项目目录下的几个sql文件，向数据库中插入对应的商品数据。
+
 6. 创建超级管理员，按照提示完成即可。
 
-```python
-python manage.py createsuperuser
-```
+   ```pyt
+   python manage.py createsuperuser
+   ```
 
 7. 执行完上述操作以后就可以启动项目了。
 
-```python
-python manage.py runserver
-```
-
-
+   ```python
+   python manage.py runserver
+   ```
 
 ##  项目模块划分
 
@@ -129,8 +139,6 @@ python manage.py runserver
   - ##### 支付成功页面
 
   - ##### 订单评价页面
-
-
 
 ## 项目部分功能展示
 
@@ -232,8 +240,6 @@ python manage.py runserver
 
 ​	商品订单表：主要存储某商品的交易总数、交易总价等。
 
-
-
 ## 缓存后端的使用
 
 在数据库模型类的说明中，没有提到购物车的模型类，这是因为购物车是一个频繁访问数据库的操作，而对于传统的Mysql数据库来说，频繁的访问数据库无疑会对数据库造成巨大的压力。因此本项目采用缓存后端来存储购物车信息。
@@ -260,8 +266,6 @@ redis是一个非关系小型数据库，很擅长频繁的读取数据，换句
 涉及到的方法有：hget（获取用户购物车中某个商品的数量）、hset（增添或覆盖某个商品的数量）、hlen（用户购物车商品总条数）、hgetall（返回所有商品的id、数量）、hdel（清除该购物车的数据）。
 
 *拓展知识：虽然本项目中没有涉及，但是在一个电商平台中，用户的历史浏览记录也是必不可少的，对于历史浏览记录来说，同样也是一个频繁访问数据库的操作，因此历史浏览记录也应该使用redis来存储，但是对于数据结构的选择，这里应该使用列表来存储，即双向链表，例如：{'用户id': [浏览记录1, 浏览记录2...]}。但是历史浏览记录通常会优先显示近期浏览的商品，因此正确的数据结构应该是：{'用户id': [浏览记录2, 浏览记录1...]}。*
-
-
 
 ## 订单并发场景
 
@@ -311,8 +315,6 @@ select * from table set stock=new_stock where id=id stock=origin_stock
 2. 乐观锁适合低并发的场景（高并发会存在大量的循环操作，增加资源的损耗）。
 3. 悲观锁适合高并发的场景。
 4. 对于更高级别的并发场景，普通的悲观锁也不适合了，这时候需要用到分布式锁。
-
-
 
 ## Mysql中事务的使用
 
@@ -397,8 +399,6 @@ def post(request):
 
 通过以上操作，就可以在Django中使用事务了，这样就可以保证订单的完整性了。
 
-
-
 ## 余额充值系统
 
 该项目的充值系统只是为了测试项目某些功能的可行性，如果想要用充值系统，那么需要修改settings文件下的RECHARGE_SYSTEM为True，否则会提示充值系统已关闭。
@@ -417,13 +417,11 @@ RECHARGE_SYSTEM = True
 
 *说明：用户余额不能超过999999999.99，这样会充值失败，这是因为设计数据表时，账户余额不能超过这个数，想超过该数量的可以自己去数据库修改相应的字段即可。*
 
-
-
 ## 支付宝功能开发
 
 ### 功能说明
 
-由于没有正式的商家号，所以该功能使用的是支付宝的沙箱系统。也就是说，普通用户不能够完成支付，只有沙箱用户才能够完成支付。在这里提供一个已经注册好的沙箱用户（余额900多万，放心使用）。在项目目录下有一个名为：“alipay_sandbox_user_info.txt”的txt文件，打开即可看到沙箱用户名和密码（密码用于登录和支付）。
+由于没有正式的商家号，所以该功能使用的是支付宝的沙箱系统。也就是说，普通用户不能够完成支付，只有沙箱用户才能够完成支付。在这里提供一个已经注册好的沙箱用户（余额900多万，放心使用）。在项目目录下有一个名为：`alipay_sandbox_user_info.txt`的txt文件，打开即可看到沙箱用户名和密码（密码用于登录和支付）。
 
 ### 网站与支付宝的通信原理
 
@@ -500,7 +498,7 @@ params = alipay.api_alipay_trade_page_pay(
 	out_trade_no=trade_no,  # 交易编号
 	total_amount=total_amount,  # 订单总价钱
 	subject=subject,  # 订单标题
-    # 用户支付后返回的页面URL，开发环境无法使用，部署环境才能生效。没有就写None
+    # 用户支付后返回的页面URL，开发环境无法使用，生产环境才能生效。没有就写None
 	return_url='http协议+域名+路径',  
 	notify_url=None  # 支付结果通知的URL，没有就写None
 )
@@ -516,6 +514,8 @@ url = 'https://openapi-sandbox.dl.alipaydev.com/gateway.do?' + params  # 支付�
 
 至于真正的代码怎么写（包括支付完成的后续），请参照项目源码。
 
+源码位于：`/apps/order/views.py`下的`AliPayView`类。
+
 ### 解决调用api_alipay_trade_query接口时报ssl证书的错误
 
 当调用该接口查询支付结果的时候报错：
@@ -524,7 +524,7 @@ url = 'https://openapi-sandbox.dl.alipaydev.com/gateway.do?' + params  # 支付�
 <urlopen error [SSL: CERTIFICATE_ _VERIFY_ FAILED] certificate verify failed: unable to get local issuer certificate (_ ssl.c:997 )>
 ```
 
-该报错是由于相关ssl证书没有的原因造成的，一般会在部署环境时报错。
+该报错是由于相关ssl证书没有的原因造成的，一般会在生产环境下报错。
 
 我们需要在项目settings文件下编写以下代码：
 
@@ -561,9 +561,9 @@ def verified_sync_response(self, data, response_type):
 
 修改完后保存再重启项目即可解决该报错。
 
-
-
 ## FastDFS分布式文件系统
+
+*注意：分布式文件系统只支持在生产环境中使用。*
 
 ### FastDFS简述
 
@@ -730,7 +730,7 @@ FastDFS 系统有三个角色：跟踪服务器(Tracker Server)、存储服务�
 
   4. 若返回“group1/M00/00/00/CgAMDmTi7rSAHWfiAABH9ekAtBY137.png”类似的信息表明FastDFS配置成功！
 
-### Nginx搭配FastDFS
+### FastDFS搭配Nginx
 
 尽管FastDFS能够处理海量静态文件，但是一旦请求数目多起来，那么它的响应速度是会变慢的，所以这时候就需要处理静态文件的高手——Nginx来处理了。
 
@@ -890,10 +890,10 @@ class FastDFSStorage(Storage):
 
 ```python
 # 将Django默认的文件存储类改成自定义文件存储类
-DEFAULT_FILE_STORAGE = 'utils.fastdfs.fastdfs.FastDFSStorage'  # 自定义文件存储类的位置，变量名不能自定义
+DEFAULT_FILE_STORAGE = 'utils.fds.fastdfs.FastDFSStorage'  # 自定义文件存储类的位置，变量名不能自定义
 
 # 配置信息路径
-FDFS_CLIENT_CONF = [BASE_DIR / 'utils/fastdfs/client.conf']  # 配置信息的路径，变量名字可以自定义
+FDFS_CLIENT_CONF = [BASE_DIR / 'utils/fds/client.conf']  # 配置信息的路径，变量名字可以自定义
 
 # fastdfs的文件访问路径
 FDFS_URL = 'http/https://域名:storage.conf中的http.server_port端口/'  # 变量名字可以自定义
@@ -905,9 +905,7 @@ FDFS_URL = 'http/https://域名:storage.conf中的http.server_port端口/'  # �
 
 当我们点击保存的时候，Django就会调用自定义的文件存储类，并向FastDFS上传该文件，此时FastDFS就会返回一个字典信息，通过自定义文件存储类中的_save方法，获取该文件的ID并直接保存至数据库中。
 
-
-
-## 部署环境中的celery
+## 生产环境下的Celery
 
 在部署环境中，不能使用开发环境的命令来启动celery，要使用以下命令来启动celery。
 

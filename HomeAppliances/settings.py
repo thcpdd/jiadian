@@ -28,7 +28,6 @@ INSTALLED_APPS = [
     'apps.cart.apps.CartConfig',
     'apps.goods.apps.GoodsConfig',
     'apps.order.apps.OrderConfig',
-    'apps.rest_test.apps.RestTestConfig'
 ]
 
 # Django在接收到请求后会从下往上开始加载中间件，处理完请求后会从上到下加载中间件
@@ -41,7 +40,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'utils.middleware.request_path_check.CheckAdminPathMiddleware'  # admin路径中间件
+    # 'utils.middleware.request_path_check.CheckAdminPathMiddleware'  # admin路径中间件
 ]
 
 ROOT_URLCONF = "HomeAppliances.urls"
@@ -168,3 +167,14 @@ ALIPAY_APP_ID = 9021000124661429  # 支付宝沙箱应用ID
 ALIPAY_GATEWAY_URL = 'https://openapi-sandbox.dl.alipaydev.com/gateway.do?'  # 支付宝网关url
 
 DISALLOWED_REQUEST_PATH = ['/admin', '/admin/login/']
+
+# HOST_NAME = 'jiadian.rainbow.hi.cn'  # 在生产环境中的主机名
+
+# 将Django默认的文件存储类改成自定义文件存储类
+# DEFAULT_FILE_STORAGE = 'utils.fdfs.fastdfs.FastDFSStorage'  # 自定义文件存储类的位置，变量名不能自定义
+
+# 配置信息路径
+# FDFS_CLIENT_CONF = [BASE_DIR / 'utils/fdfs/client.conf']  # 配置信息的路径，变量名字可以自定义
+
+# fastdfs的文件访问路径
+# FDFS_URL = 'http://jiadian.rainbow.hi.cn:8888'  # 变量名字可以自定义
