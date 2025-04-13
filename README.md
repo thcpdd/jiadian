@@ -6,7 +6,7 @@
 
 家电之选项目源于<a href="https://gitee.com/bayke/bayke-shop/tree/master">《拜客商城系统》</a>，原项目采用`DRF(djangorestframework)`框架开发，而本项目完全使用`Django`原生框架开发，后端逻辑与原项目逻辑完全不一样，充分利用`Python`面向对象编程，逻辑清晰，语法简洁。前端采用`Vue2`框架，减少对`DOM`元素的操作。后端采用`Django-MTV`设计模式，符合传统网站开发规范，适合中等偏下级别的程序员学习和开发。
 
-访问地址：<a href="http://jiadian.rainbow.hi.cn">http://jiadian.rainbow.hi.cn</a>
+访问地址：<a href="https://jiadian.thcpdd.com">https://jiadian.thcpdd.com</a>
 
 项目完成时间：2023年7月15日
 
